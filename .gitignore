@@ -1,0 +1,27 @@
+# ---- 私有资料：绝不进入公开仓库 ----
+_private/
+_build/
+答题卡识别_需求问卷.xlsx
+示例.xlsx
+*.prompt.txt
+*.prompt.md
+
+# ---- 依赖与构建产物 ----
+node_modules/
+dist/
+dist-electron/
+build/
+out/
+release/
+*.log
+*.tmp
+*.zip
+*.apk
+*.exe
+
+# ---- 系统文件 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
