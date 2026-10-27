@@ -166,7 +166,14 @@ export function decodeGlyphPredictions(
     const loneDash = singleGlyph && aspect >= 2.2;
     const base = { rect: { ...p.rect }, probs: p.probs, area };
     if (top === JUNK_INDEX) {
-      classified.push({ ...base, label: "junk", kind: "junk", confidence: p.probs[JUNK_INDEX] });
+      // 模型把「很小的扁横笔画」当噪迹是常见情况，但老师写的负号也可能这样。
+      // 若它明显是横线且位于数字垂直中带，保留成低置信度的负号候选，交给上层人工确认，
+      // 避免把 -3 悄悄读成 3。
+      if ((dashLike || loneDash) && w >= 4) {
+        classified.push({ ...base, label: "-", kind: "minus", confidence: Math.min(0.9, Math.max(p.probs[MINUS_INDEX], 0.85)) });
+      } else {
+        classified.push({ ...base, label: "junk", kind: "junk", confidence: p.probs[JUNK_INDEX] });
+      }
       continue;
     }
     if (top === MINUS_INDEX) {

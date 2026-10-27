@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  BookOpen,
   Bot,
   Check,
   Database,
@@ -22,6 +23,41 @@ import { estimateStorage } from "../core/storage/db";
 import { wipeAll } from "../core/storage/repo";
 import { buildBackup, restoreBackup } from "../core/backup";
 import { saveFile } from "../core/platform";
+
+const HELP_ITEMS: Array<{ q: string; a: string }> = [
+  {
+    q: "第一次使用怎么开始？",
+    a: "① 学生名单：导入 Excel（自动识别姓名列，识别错了可以手动改）；\n② 区域划分：拍一张答题卡样张，自动摆正后画出「题目区域」和「姓名区域」，保存模板；\n③ 拍摄/上传：批量拍照或选图，应用会自动矫正、识别，处理好的进入「待确认」；\n④ 核对：逐张检查分数和姓名；\n⑤ 导出：一键导出 Excel，成绩会同时备份在应用里。",
+  },
+  {
+    q: "答题卡模板怎么画？",
+    a: "先上传一张答题卡样张，等它自动摆正后：点「画题目区域」，在每道题的作答位置上拖一个框；再点「画姓名区域」框住手写姓名；最后保存。同一个模板这套卷子一直能用。框不用画得很精确，稍微大一点没关系（分数常写在框外，识别时会往周围找）。",
+  },
+  {
+    q: "拍照有什么要求？",
+    a: "答题卡放平、光线均匀、四个角都拍进画面即可；自动矫正支持一定程度的歪斜、透视、阴影和轻微模糊。如果提示「没能自动找到边缘」，建议重拍一张。",
+  },
+  {
+    q: "核对页怎么最快？",
+    a: "键盘：Tab / ↑↓ 切题，Enter 通过继续，Backspace 修改，Esc 取消。\n鼠标/触屏：点分数修改，点「继续」通过。\n一张卡里大部分题都正常时，可以点「通过正常题（N）」一次性通过；看不清、一题多分、没找到分数的题不会被自动通过，仍需人工确认。",
+  },
+  {
+    q: "没有 AI Key / 断网还能用吗？",
+    a: "可以。没配 Key、关闭 AI 或断网时，分数会用内置的本地模型识别；姓名可以从名单里点选，也可以开启「按名单顺序自动填姓名」（仍需逐张确认）。离线识别是实验特性，看不清/不确定时会标「待确认」，不会硬猜。想要更高的自动识别率，建议配置 AI Key 联网识别。",
+  },
+  {
+    q: "成绩导出和换电脑怎么办？",
+    a: "导出页可以导出 Excel（姓名为行、题号为列、含总分列，未确认格显示红色问号），即使没核对完也能导出，导出的文件会自动备份在应用里。\n换电脑或重装：设置 →「完整备份」导出备份文件，在新设备上「恢复备份」即可。",
+  },
+  {
+    q: "手机怎么和电脑一起用？",
+    a: "电脑和手机连同一个 Wi-Fi。电脑打开「拍摄 / 上传」→「手机拍摄」，用手机扫码打开网页拍照，照片实时传回电脑，电脑负责识别和导出。手机不用安装 App。",
+  },
+  {
+    q: "Android 手机可以单独用吗？",
+    a: "可以。Android 版支持完整流程：导入名单、拍摄/上传、自动处理、核对、导出（保存到手机 Documents 并调起分享）。第一次安装需要在系统里允许「安装未知来源应用」。",
+  },
+];
 
 export function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
@@ -323,6 +359,32 @@ export function SettingsScreen() {
               清空全部数据
             </button>
           </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-head">
+          <BookOpen size={17} color="var(--red)" />
+          <h2>使用说明</h2>
+        </div>
+        <div className="card-body">
+          {HELP_ITEMS.map((item) => (
+            <details key={item.q} style={{ borderTop: "1px solid var(--line)", padding: "4px 0" }}>
+              <summary
+                style={{
+                  cursor: "pointer",
+                  fontWeight: 600,
+                  padding: "10px 0",
+                  listStylePosition: "inside",
+                }}
+              >
+                {item.q}
+              </summary>
+              <div className="faint small" style={{ lineHeight: 1.9, paddingBottom: 10, whiteSpace: "pre-line" }}>
+                {item.a}
+              </div>
+            </details>
+          ))}
         </div>
       </div>
 

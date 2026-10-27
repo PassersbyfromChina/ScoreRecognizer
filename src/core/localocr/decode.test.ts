@@ -61,6 +61,18 @@ describe("decodeGlyphPredictions - 多位数", () => {
 });
 
 describe("decodeGlyphPredictions - 负号", () => {
+  it("模型把负号判成噪迹时，保留为低置信度负号候选（不悄悄读成正数）", () => {
+    const flatJunk: GlyphPrediction = {
+      rect: { x: 0, y: 18, w: 16, h: 5 },
+      probs: probs(JUNK_INDEX, 0.85),
+      area: 16 * 5 * 0.5,
+    };
+    const r = decodeGlyphPredictions([flatJunk, pred(digitRect(22), 3, 0.96)]);
+    expect(r.text).toBe("-3");
+    expect(r.value).toBe(-3);
+    expect(r.confidence).toBeLessThan(0.99);
+  });
+
   it("模型识别出的负号拼成 -3", () => {
     const r = decodeGlyphPredictions([minusPred(0), pred(digitRect(22), 3, 0.96)]);
     expect(r.text).toBe("-3");
