@@ -36,10 +36,12 @@ export function matchStudent(rawName: string | null | undefined, students: Stude
     const target = normalizeName(s.name);
     if (target === name) return { studentId: s.id, name: s.name, distance: 0, score: 1 };
     const d = levenshtein(name, target);
+    // 只有完全一致才自动对应学生；差一个字只作为候选提示，交给人工确认（避免认错人）
     let score = 0;
-    if (d === 1) score = 0.78;
-    else if (d === 2 && name.length >= 3) score = 0.55;
-    else if (d === 2) score = 0.45;
+    if (d === 1) score = 0.6;
+    else if (d === 2 && name.length >= 3) score = 0.45;
+    else if (d === 2) score = 0.25;
+    else if (d >= 3) score = 0.1;
     // 识别结果包含在名单里（多字/少字）也给一点分
     if (d > 0 && (target.includes(name) || name.includes(target)) && Math.abs(target.length - name.length) <= 1) {
       score = Math.max(score, 0.5);

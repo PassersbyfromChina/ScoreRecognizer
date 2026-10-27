@@ -381,7 +381,8 @@ export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<P
     aiName = result.name;
     aiNameConfidence = result.nameConfidence;
     if (result.errors.length > 0) {
-      warnings.push(...result.errors.slice(0, 2));
+      const first = result.errors[0].slice(0, 80);
+      warnings.push(`AI 识别请求失败（${first}），已改用本地识别兜底`);
     }
   } else if (!settings.apiKey) {
     warnings.push("没有配置 AI Key：分数用本地识别，姓名请手动确认");
@@ -433,7 +434,9 @@ export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<P
       nameState = "ok";
     } else {
       nameState = "low_confidence";
-      if (match.candidates.length > 0) nameText = `${aiName}（可能是 ${match.candidates[0].name}）`;
+      // 只有「足够像」的候选才显示「可能是 X」，否则不要误导老师
+      const top = match.candidates[0];
+      if (top && top.score >= 0.5) nameText = `${aiName}（可能是 ${top.name}）`;
     }
   } else if (nameRegion) {
     nameState = nameComponents.length > 0 ? "unreviewed" : "unreviewed";
