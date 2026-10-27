@@ -30,6 +30,8 @@ export interface AppSettings {
   missingMarkCustom: string;
   /** 自动识别失败时是否自动尝试本地识别 */
   localFirst: boolean;
+  /** AI 识别方式：逐题裁剪（更稳，默认）或整张识别（一次请求） */
+  aiRecognizeMode: "crops" | "whole";
   /** 离线时按班级名单顺序自动填姓名（仍需人工确认，避免每张都手动选） */
   autoNameByOrder: boolean;
   theme: "light";
@@ -45,6 +47,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   missingMarkMode: "question",
   missingMarkCustom: "?",
   localFirst: true,
+  aiRecognizeMode: "crops",
   autoNameByOrder: false,
   theme: "light",
 };

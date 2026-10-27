@@ -2,7 +2,7 @@ import type { AnswerRecord, AppSettings, CardTemplate, Capture, Region, Student 
 import { cropExpanded, cropNameRegion, normalizeCard, processingLongSide, regionToPixels } from "../imaging/pipeline";
 import { cropCanvas, canvasToBlob } from "../imaging/canvas";
 import { extractRedInk, type RedComponent } from "../imaging/red";
-import { recognizeCrops, type CropImage } from "./aiRecognize";
+import { recognizeCrops, recognizeWholeCard, type CropImage } from "./aiRecognize";
 import { matchStudent } from "./nameMatch";
 
 export interface ProcessContext {
@@ -372,28 +372,46 @@ export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<P
 
   const aiConfigured = Boolean(settings.aiEnabled && settings.apiKey);
   if (aiConfigured && questionRegions.length > 0) {
-    onProgress?.("AI 正在识别分数…");
-    const crops: CropImage[] = questionRegions.map((region) => {
-      const crop = cropForQuestion(canvas, region, longSidePx, extraction.components);
-      return {
-        questionNo: region.questionNo,
-        label: `第 ${region.questionNo} 题局部`,
-        dataUrl: crop.toDataURL("image/jpeg", 0.9),
-      };
-    });
-    let nameCrop: CropImage | null = null;
-    if (nameRegion) {
-      const blobCrop = await cropNameRegion(canvas, nameRegion, longSidePx);
-      const dataUrl = await blobToDataUrl(blobCrop);
-      nameCrop = { label: "手写姓名局部", dataUrl };
-    }
-    const result = await recognizeCrops(settings, crops, nameCrop);
-    for (const [q, a] of result.answers) answerByQuestion.set(q, a);
-    aiName = result.name;
-    aiNameConfidence = result.nameConfidence;
-    if (result.errors.length > 0) {
-      const first = result.errors[0].slice(0, 80);
-      warnings.push(`AI 识别请求失败（${first}），已改用本地识别兜底`);
+    if (settings.aiRecognizeMode === "whole") {
+      onProgress?.("AI 正在识别整张答题卡…");
+      const questionNos = questionRegions.map((r) => r.questionNo!);
+      const result = await recognizeWholeCard(
+        settings,
+        canvas.toDataURL("image/jpeg", 0.85),
+        template.regions,
+        questionNos,
+      );
+      for (const [q, a] of result.answers) answerByQuestion.set(q, a);
+      aiName = result.name;
+      aiNameConfidence = result.nameConfidence;
+      if (result.errors.length > 0) {
+        const first = result.errors[0].slice(0, 80);
+        warnings.push(`AI 整张识别失败（${first}），已改用本地识别兜底`);
+      }
+    } else {
+      onProgress?.("AI 正在识别分数…");
+      const crops: CropImage[] = questionRegions.map((region) => {
+        const crop = cropForQuestion(canvas, region, longSidePx, extraction.components);
+        return {
+          questionNo: region.questionNo,
+          label: `第 ${region.questionNo} 题局部`,
+          dataUrl: crop.toDataURL("image/jpeg", 0.9),
+        };
+      });
+      let nameCrop: CropImage | null = null;
+      if (nameRegion) {
+        const blobCrop = await cropNameRegion(canvas, nameRegion, longSidePx);
+        const dataUrl = await blobToDataUrl(blobCrop);
+        nameCrop = { label: "手写姓名局部", dataUrl };
+      }
+      const result = await recognizeCrops(settings, crops, nameCrop);
+      for (const [q, a] of result.answers) answerByQuestion.set(q, a);
+      aiName = result.name;
+      aiNameConfidence = result.nameConfidence;
+      if (result.errors.length > 0) {
+        const first = result.errors[0].slice(0, 80);
+        warnings.push(`AI 识别请求失败（${first}），已改用本地识别兜底`);
+      }
     }
   } else if (!settings.apiKey) {
     warnings.push("没有配置 AI Key：分数用本地识别，姓名请手动确认");

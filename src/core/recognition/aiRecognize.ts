@@ -1,5 +1,5 @@
-import type { AppSettings } from "../types";
-import { callVision, type VisionAnswer, type VisionImage } from "../ai/deepseek";
+import type { AppSettings, Region } from "../types";
+import { buildRecognitionPrompt, callVision, type VisionAnswer, type VisionImage } from "../ai/deepseek";
 
 export interface CropImage {
   questionNo?: number;
@@ -85,4 +85,36 @@ export async function recognizeCrops(
   }
 
   return { answers, name, nameConfidence, errors };
+}
+
+/**
+ * 整张识别：把矫正后的整张答题卡一次性交给 AI，适合标准排版答题卡。
+ * 失败时返回空结果 + errors，由调用方回退到本地识别/人工。
+ */
+export async function recognizeWholeCard(
+  settings: AppSettings,
+  imageDataUrl: string,
+  regions: Region[],
+  questionNos: number[],
+): Promise<AIRecognizeResult> {
+  try {
+    const prompt = buildRecognitionPrompt(regions, questionNos);
+    const result = await callVision(
+      { settings, timeoutMs: 90_000 },
+      [{ dataUrl: imageDataUrl, label: "整张答题卡（已矫正）" }],
+      prompt,
+    );
+    const answers = new Map<number, VisionAnswer>();
+    for (const a of result.answers) {
+      if (!answers.has(a.questionNo)) answers.set(a.questionNo, a);
+    }
+    return { answers, name: result.name, nameConfidence: result.nameConfidence, errors: [] };
+  } catch (e) {
+    return {
+      answers: new Map(),
+      name: null,
+      nameConfidence: 0,
+      errors: [e instanceof Error ? e.message : "AI 整张识别失败"],
+    };
+  }
 }

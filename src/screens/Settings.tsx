@@ -224,6 +224,29 @@ export function SettingsScreen() {
               <div className="hint">默认 https://api.deepseek.com，一般不用改</div>
             </div>
           </div>
+
+          <div className="field" style={{ marginTop: 14 }}>
+            <label className="label">AI 识别方式</label>
+            <div className="row wrap" style={{ gap: 8 }}>
+              <button
+                type="button"
+                className={`btn btn-sm ${settings.aiRecognizeMode === "whole" ? "btn-secondary" : "btn-primary"}`}
+                onClick={() => void updateSettings({ aiRecognizeMode: "crops" })}
+              >
+                逐题裁剪（推荐）
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${settings.aiRecognizeMode === "whole" ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => void updateSettings({ aiRecognizeMode: "whole" })}
+              >
+                整张识别
+              </button>
+            </div>
+            <div className="hint">
+              逐题裁剪更稳、适合各种排版；整张识别一次请求识别整张卡，适合标准答题卡，AI 调用次数更少。
+            </div>
+          </div>
         </div>
       </div>
 
