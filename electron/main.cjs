@@ -6,6 +6,11 @@ const { createLanServer } = require("./lan-server.cjs");
 const isDev = !app.isPackaged;
 const DEV_URL = process.env.ELECTRON_START_URL || "http://localhost:5173";
 
+// 开发版与正式版使用不同的数据目录，避免单实例锁冲突/测试数据污染正式数据
+if (isDev) {
+  app.setPath("userData", path.join(app.getPath("appData"), "ScoreRecognizer-Dev"));
+}
+
 let mainWindow = null;
 let lanServer = null;
 

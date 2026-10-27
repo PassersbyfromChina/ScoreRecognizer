@@ -66,4 +66,9 @@ export interface LocalOcrOptions {
   maxDigits?: number;
   /** 允许的最大绝对值（默认 999） */
   maxValue?: number;
+  /**
+   * 字形最小高度（画布像素，默认 10）。低于这个尺寸的像素信息不足以可靠区分
+   * 数字与噪迹/负号，直接返回 null 交人工，避免低分辨率下猜错分数。
+   */
+  minGlyphHeight?: number;
 }

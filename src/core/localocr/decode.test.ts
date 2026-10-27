@@ -152,6 +152,15 @@ describe("decodeGlyphPredictions - 置信度门槛", () => {
     expect(r.reason).toBe("empty");
     expect(r.value).toBeNull();
   });
+
+  it("字形太小（低于可靠像素尺寸）→ value=null，避免低分辨率猜错", () => {
+    const tiny1 = pred(digitRect(0, 4, 7, 4), 1, 0.99);
+    const tiny0 = pred(digitRect(6, 5, 7, 4), 0, 0.99);
+    const r = decodeGlyphPredictions([tiny1, tiny0]);
+    expect(r.text).toBe("10");
+    expect(r.value).toBeNull();
+    expect(r.reason).toBe("low-confidence");
+  });
 });
 
 describe("decodeGlyphPredictions - 歧义 / 格式", () => {

@@ -35,6 +35,7 @@ const DEFAULTS = {
   minDigitConfidence: 0.5,
   maxDigits: 3,
   maxValue: 999,
+  minGlyphHeight: 10,
   clusterGapRatio: 0.75,
   junkPenalty: 0.9,
 };
@@ -144,7 +145,6 @@ export function decodeGlyphPredictions(
 
   const tops = predictions.map((p) => argmax(p.probs));
   const heights = predictions.map((p) => Math.max(1, p.rect.h));
-  const maxH = Math.max(...heights);
   const prelimDigitHeights = predictions.filter((_, i) => tops[i] <= 9).map((p) => Math.max(1, p.rect.h));
   const medH = prelimDigitHeights.length > 0 ? median(prelimDigitHeights) : median(heights);
   const prelimCenters = predictions.filter((_, i) => tops[i] <= 9).map((p) => p.rect.y + p.rect.h / 2);
@@ -184,8 +184,10 @@ export function decodeGlyphPredictions(
       classified.push({ ...base, label: "-", kind: "minus", confidence: Math.max(p.probs[MINUS_INDEX], 0.9) });
       continue;
     }
-    const tiny = h < 0.32 * maxH && w < 0.7 * maxH;
+    const tiny = h < 0.35 * medH && w < 0.7 * medH;
     if (tiny) {
+      // 远小于同组数字的小点/短划：按噪迹丢弃（用中位高度而不是最大高度，
+      // 避免题目区域里的大红勾把真正数字“衬”成噪点）
       classified.push({ ...base, label: "junk", kind: "junk", confidence: p.probs[top] });
       continue;
     }
@@ -276,7 +278,10 @@ export function decodeGlyphPredictions(
   let confidence = chosen.confidence;
   if (stats.junkCount > 0) confidence *= opts.junkPenalty;
   confidence = Math.max(0, Math.min(1, confidence));
-  if (!chosen.digitsValid || confidence < opts.minConfidence) {
+  const digitHeights = chosen.glyphs.filter((g) => g.kind === "digit").map((g) => g.rect.h);
+  const medianHeight = median(digitHeights);
+  const tooSmall = digitHeights.length > 0 && medianHeight < opts.minGlyphHeight;
+  if (!chosen.digitsValid || tooSmall || confidence < opts.minConfidence) {
     return {
       text: chosen.text,
       value: null,
