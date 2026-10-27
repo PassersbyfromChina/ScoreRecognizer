@@ -225,11 +225,12 @@
   .foot-links a:hover{color:var(--ink)}
   .copy{margin-top:26px;padding-top:20px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--faint)}
 
-  /* reveal */
-  .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease}
-  .reveal.in{opacity:1;transform:none}
+  /* 入场动画只作用于首屏，页面内容不依赖 JS 也完整可见 */
+  @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .hero-grid > div:first-child{animation:rise .55s cubic-bezier(.2,.7,.3,1) both}
+  .hero .mock{animation:rise .7s cubic-bezier(.2,.7,.3,1) both .08s}
   @media (prefers-reduced-motion:reduce){
-    .reveal{opacity:1;transform:none;transition:none}
+    .hero-grid > div:first-child,.hero .mock{animation:none}
     html{scroll-behavior:auto}
   }
 </style>
@@ -594,13 +595,6 @@
       if (tag) tag.hidden = false;
     }
   }
-
-  var io = new IntersectionObserver(function (entries) {
-    entries.forEach(function (e) {
-      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
-    });
-  }, { rootMargin: "0px 0px -8% 0px", threshold: 0.12 });
-  document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
 })();
 </script>
 </body>
