@@ -1,0 +1,90 @@
+/* 手机 / 平板 / Android 适配 */
+@media (max-width: 860px) {
+  .app-shell { flex-direction: column; }
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 10px;
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+  .sidebar-logo { padding: 0 4px 0 2px; flex: none; gap: 0; }
+  .sidebar-logo > div { display: none; }
+  .sidebar-logo .logo-mark { width: 30px; height: 30px; font-size: 15px; }
+  .nav {
+    flex-direction: row;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    gap: 2px;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-item {
+    flex-direction: column;
+    gap: 2px;
+    font-size: 10px;
+    padding: 5px 8px;
+    white-space: nowrap;
+    flex: none;
+  }
+  .nav-item svg { width: 17px; height: 17px; }
+  .nav-item .nav-count { margin-left: 0; font-size: 10px; padding: 0 6px; }
+  .nav-sep,
+  .sidebar-footer { display: none; }
+
+  .topbar {
+    height: auto;
+    min-height: 50px;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+  .project-pill { font-size: 12.5px; }
+  .status-chips {
+    width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .status-chips::-webkit-scrollbar { display: none; }
+  .chip { white-space: nowrap; flex: none; font-size: 11px; padding: 4px 8px; }
+
+  .page { padding: 14px 12px calc(36px + env(safe-area-inset-bottom)); }
+  .page-head { flex-direction: column; align-items: stretch; gap: 10px; }
+  .page-head h1 { font-size: 20px; }
+  .page-head .actions { flex-wrap: wrap; }
+  .page-head .actions .btn { flex: 1; min-width: 120px; }
+
+  .status-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .status-card { padding: 12px 14px; }
+  .status-card .num { font-size: 24px; }
+  .status-card .ext { display: none; }
+
+  .home-cols,
+  .grid-2 { grid-template-columns: 1fr; }
+  .hero-card { flex-direction: column; align-items: flex-start; gap: 12px; padding: 18px; }
+  .hero-card .hc-actions { flex-wrap: wrap; width: 100%; }
+  .hero-card .hc-actions .btn { flex: 1; }
+
+  .modal-mask { padding: 8px; align-items: flex-end; }
+  .modal { max-height: calc(100vh - 16px); border-radius: 16px; }
+  .modal-head, .modal-body, .modal-foot { padding-left: 14px; padding-right: 14px; }
+
+  table.tbl th, table.tbl td { padding: 8px; font-size: 12.5px; }
+  .badge { white-space: nowrap; }
+  .cap-issue-col { display: none; }
+  .thumb { width: 38px !important; height: 48px !important; }
+  .btn { height: 36px; }
+  .btn-lg { height: 44px; }
+  .rv-layout, .ex-layout { grid-template-columns: 1fr !important; }
+}
+
+@media (max-width: 640px) {
+  .project-pill { max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .status-chips .chip { font-size: 10.5px; }
+  .hero-card h2 { font-size: 17px; }
+}

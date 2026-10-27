@@ -9,6 +9,7 @@ import {
   Loader2,
   RefreshCw,
   ScanLine,
+  Smartphone,
   Trash2,
   Upload,
   Video,
@@ -21,6 +22,7 @@ import { deleteCapture, getImageBlob, getImageUrl, listCaptures, putImage, saveC
 import { processCapture } from "../core/recognition/engine";
 import { toast } from "../components/Toast";
 import { ConfirmDialog } from "../components/Modal";
+import { PhoneLinkModal } from "../components/PhoneLinkModal";
 
 const STATUS_META: Record<
   Capture["status"],
@@ -32,6 +34,12 @@ const STATUS_META: Record<
   done: { label: "已完成", cls: "badge-green", icon: <CheckCircle2 size={13} /> },
 };
 
+/** 只有真正的失败才记成错误展示；「没配 Key 用本地识别」等属于提示，不阻塞。 */
+function fatalWarning(warnings: string[]): string | undefined {
+  const fatal = warnings.filter((w) => /失败|无法|错误/.test(w));
+  return fatal.length ? fatal.join("；") : undefined;
+}
+
 export function CaptureScreen({ onNavigate }: NavProps) {
   const project = useAppStore((s) => s.project);
   const template = useAppStore((s) => s.template);
@@ -42,6 +50,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [phoneOpen, setPhoneOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Capture | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const busyRef = useRef(false);
@@ -82,6 +91,28 @@ export function CaptureScreen({ onNavigate }: NavProps) {
     [project, refreshCaptures],
   );
 
+  // 手机端传回的照片：直接落库，进入自动处理队列
+  useEffect(() => {
+    const bridge = window.desktop;
+    if (!bridge) return;
+    const off = bridge.lan.onPhoto((payload) => {
+      try {
+        const raw = payload.data instanceof Uint8Array ? payload.data : new Uint8Array(payload.data);
+        let type = "image/jpeg";
+        if (/\.png$/i.test(payload.filename)) type = "image/png";
+        else if (/\.webp$/i.test(payload.filename)) type = "image/webp";
+        const blob = new Blob([raw as unknown as BlobPart], { type });
+        const file = new File([blob], payload.filename || "phone.jpg", { type });
+        void addFiles([file]);
+        toast("手机传来一张答题卡，已加入处理队列", "ok");
+      } catch (e) {
+        console.error(e);
+        toast("手机照片接收失败", "err");
+      }
+    });
+    return off;
+  }, [addFiles]);
+
   // 后台自动处理队列（一次一张，拍完一张处理一张，和拍摄/确认并行）
   // 注意：不要把这个循环绑在 captures 依赖上，否则列表一更新就会打断正在处理的任务。
   const runQueue = useCallback(async () => {
@@ -116,7 +147,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
             nameConfidence: result.nameConfidence,
             nameState: result.nameState,
             studentId: result.studentId,
-            error: result.warnings.length ? result.warnings.join("；") : undefined,
+            error: fatalWarning(result.warnings),
           };
           await saveCapture(updated);
         } catch (e) {
@@ -209,6 +240,12 @@ export function CaptureScreen({ onNavigate }: NavProps) {
           </div>
         </div>
         <div className="actions">
+          {window.desktop && (
+            <button className="btn btn-secondary" onClick={() => setPhoneOpen(true)}>
+              <Smartphone size={16} />
+              手机拍摄
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={() => setCameraOpen(true)}>
             <Video size={16} />
             摄像头拍摄
@@ -247,7 +284,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
             >
               <div className="dz-icon">{uploading ? <span className="spinner" /> : <ImagePlus size={22} />}</div>
               <div className="dz-title">把答题卡图片拖到这里，或点击选择</div>
-              <div className="dz-desc">支持一次选多张；手机扫码协作功能在下一版开放</div>
+              <div className="dz-desc">支持一次选多张；手机与电脑连同一 Wi-Fi 后，点右上「手机拍摄」扫码，手机拍了自动传回电脑</div>
             </div>
             <div className="notice notice-info" style={{ marginTop: 16 }}>
               <AlertTriangle size={15} />
@@ -281,7 +318,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
                     <th style={{ width: 64 }}>图片</th>
                     <th>姓名</th>
                     <th>状态</th>
-                    <th>识别情况</th>
+                    <th className="cap-issue-col">识别情况</th>
                     <th style={{ width: 160, textAlign: "right" }}>操作</th>
                   </tr>
                 </thead>
@@ -305,6 +342,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
       )}
 
       {cameraOpen && <CameraModal onClose={() => setCameraOpen(false)} onCapture={(files) => addFiles(files)} />}
+      {phoneOpen && <PhoneLinkModal onClose={() => setPhoneOpen(false)} />}
 
       {deleteTarget && (
         <ConfirmDialog
@@ -378,7 +416,7 @@ function CaptureRow({
           </span>
         )}
       </td>
-      <td>
+      <td className="cap-issue-col">
         {capture.status === "pending_review" ? (
           capture.error ? (
             <span className="small" style={{ color: "var(--amber)" }}>

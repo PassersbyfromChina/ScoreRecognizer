@@ -1,11 +1,35 @@
 // Electron 主进程（CommonJS）。打包后加载 dist/index.html；开发时加载 Vite dev server。
 const { app, BrowserWindow, dialog, session, shell, Menu, ipcMain } = require("electron");
 const path = require("node:path");
+const { createLanServer } = require("./lan-server.cjs");
 
 const isDev = !app.isPackaged;
 const DEV_URL = process.env.ELECTRON_START_URL || "http://localhost:5173";
 
 let mainWindow = null;
+let lanServer = null;
+
+/** 局域网手机拍摄服务（仅按需启动）。 */
+function setupLan() {
+  lanServer = createLanServer({
+    userDataDir: app.getPath("userData"),
+    onPhoto: ({ id, filename, data }) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send("lan:photo", { id, filename, data });
+      }
+    },
+  });
+  ipcMain.handle("lan:info", () => lanServer.info());
+  ipcMain.handle("lan:start", async () => {
+    try {
+      const info = await lanServer.start();
+      return { ok: true, ...info };
+    } catch (e) {
+      return { ok: false, error: String((e && e.message) || e) };
+    }
+  });
+  ipcMain.handle("lan:stop", async () => ({ ok: true, ...(await lanServer.stop()) }));
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -74,6 +98,7 @@ if (!gotLock) {
     Menu.setApplicationMenu(null);
     setupDownloadHandler();
     ipcMain.handle("app:version", () => app.getVersion());
+    setupLan();
     createWindow();
 
     app.on("activate", () => {

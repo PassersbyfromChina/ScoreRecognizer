@@ -9,16 +9,16 @@
 - **名单导入**：读取 Excel 中的姓名列，自动识别表头与起始行，也可手动指定。
 - **区域划分**：拍一张答题卡样张，自动识别边缘、矫正倾斜与透视；AI 可先给出题目与姓名区域，再人工拖动修改。坐标以试卷长边为 1 归一化保存，同一套卷子复用模板。
 - **批量拍摄 / 上传**：电脑或手机拍摄、批量导入，图片实时保存；顶部实时统计「待拍摄 / 待自动处理 / 待确认 / 已完成」。
-- **识别**：本地红色笔迹提取 + 数字识别；姓名可本地识别，也可交给 AI；也可整张交给 AI。
+- **手机拍摄协作**：电脑与手机同一局域网，电脑显示二维码，手机扫码打开网页拍照，照片实时传回电脑，其余交给电脑。
+- **识别**：本地红色笔迹提取；分数支持本地离线数字识别（内置轻量模型，实验特性）或 DeepSeek 视觉 AI；姓名由 AI 识别或用名单点选确认。
 - **人工确认**：三种核对视图（整张试卷 / 红笔局部放大 / 表格）。红笔旁显示等大识别结果，支持键盘与触屏操作。
-- **导出**：Excel，姓名为行、题号为列，可含总分列；未确认的格子以可配置的标记（默认红色问号）导出。应用内保留备份。
-- **双机协作**：电脑与手机同一局域网，手机只负责拍摄或批量上传，其余交给电脑。
-- **离线优先**：名单、图片与结果只保存在本机；AI 识别按需开启。
+- **导出**：Excel，姓名为行、题号为列，可含总分列；未确认的格子以可配置的标记（默认红色问号）导出。应用内保留备份；Android 上保存到 Documents 并调起系统分享。
+- **离线优先**：不联网也能拍摄、矫正、本地数字识别、人工确认与导出；名单、图片与结果只保存在本机。
 
 ## 平台
 
 - Windows x64 / Windows ARM64（Windows 10 及以上）
-- Android 10 及以上（开发中，后续版本提供）
+- Android 10 及以上（提供开发版 APK；手机可独立使用，也可仅作拍摄端配合电脑）
 
 ## 下载
 
@@ -26,29 +26,34 @@
 
 - Windows x64 / ARM64 安装包（NSIS）
 - Windows x64 / ARM64 便携版 ZIP（解压即用；系统启用「智能应用控制」时请用这个）
+- Android APK（侧载安装）
 
 产品页与下载入口：<https://passersbyfromchina.github.io/ScoreRecognizer/>
 
 ## 开发
 
-技术栈：Electron + React + TypeScript + Vite；数据保存在本机 IndexedDB。
+技术栈：Electron + React + TypeScript + Vite + Capacitor；数据保存在本机 IndexedDB。
 
 ```bash
 pnpm install
-pnpm dev          # 启动前端开发服务器（http://127.0.0.1:5173）
-pnpm electron     # 另开一个终端，启动桌面端（连到开发服务器）
-pnpm build        # 类型检查 + 构建 dist/
-pnpm test         # 单元测试（vitest）
-pnpm package:win  # 打包 Windows x64 安装包
+pnpm dev               # 启动前端开发服务器（http://127.0.0.1:5173）
+pnpm electron          # 另开一个终端，启动桌面端（连到开发服务器）
+pnpm build             # 类型检查 + 构建 dist/
+pnpm test              # 单元测试（vitest）
+pnpm package:win       # 打包 Windows x64 安装包
+pnpm package:win-arm64 # 打包 Windows ARM64 安装包
+node scripts/build-android.mjs   # 构建 Android APK（需要本地 JDK/Android SDK，见脚本内说明）
 ```
 
 目录结构：
 
 ```
-src/core/        与界面无关的核心逻辑（Excel、图像处理、AI 调用、本地存储）
+src/core/        与界面无关的核心逻辑（Excel、图像处理、本地数字识别、AI 调用、本地存储）
 src/screens/     界面页面
 src/components/  通用组件（区域编辑、弹窗、提示）
-electron/        桌面端主进程
+electron/        桌面端主进程（含局域网手机拍摄服务）
+android/         Android 工程（Capacitor）
+scripts/         构建/打包脚本
 docs/            GitHub Pages 产品页
 ```
 

@@ -75,7 +75,7 @@ export function Onboarding() {
                 <div>
                   下一步可以填写 AI 服务的 key（一串访问密钥），让应用能自动看图。
                   <br />
-                  不想用 AI 也可以跳过：识别会改为手动确认，其他功能照常使用。
+                  不想用 AI 也可以跳过：分数会改用本地离线识别（姓名手动确认），其他功能照常使用。
                 </div>
               </div>
               <div className="spacer" />

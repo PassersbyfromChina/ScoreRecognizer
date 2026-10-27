@@ -17,6 +17,16 @@ export default defineConfig({
     host: "127.0.0.1",
     port: 5173,
     strictPort: true,
+    watch: {
+      ignored: [
+        "**/_private/**",
+        "**/_build/**",
+        "**/android/**",
+        "**/release/**",
+        "**/dist/**",
+        "**/docs/**",
+      ],
+    },
   },
   build: {
     outDir: "dist",

@@ -26,6 +26,7 @@ import {
   snapshotToCsv,
 } from "../core/excel/export";
 import { listExports, newId, saveExport } from "../core/storage/repo";
+import { saveFile } from "../core/platform";
 import { toast } from "../components/Toast";
 import type { NavProps } from "../navigation";
 import "./export.css";
@@ -248,19 +249,12 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-/** 用 Blob + a[download] 触发浏览器下载。 */
-function downloadWorkbook(buffer: ArrayBuffer, filename: string): void {
+/** 保存 Excel：桌面/浏览器走下载，Android 走系统文件保存 + 分享。 */
+async function saveWorkbookFile(buffer: ArrayBuffer, filename: string): Promise<void> {
   const blob = new Blob([buffer], { type: XLSX_MIME });
-  const url = URL.createObjectURL(blob);
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = filename;
-  anchor.rel = "noopener";
-  anchor.style.display = "none";
-  document.body.appendChild(anchor);
-  anchor.click();
-  anchor.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 5000);
+  const result = await saveFile(blob, filename);
+  if (!result.ok) throw new Error(result.message ?? "保存失败");
+  if (result.message) toast(result.message, "ok");
 }
 
 async function copyTextToClipboard(text: string): Promise<void> {
@@ -425,7 +419,7 @@ export function ExportScreen({ onNavigate }: NavProps) {
       };
       // 先落盘备份，再触发下载：保证「导出后应用内保留备份」
       await saveExport(record);
-      downloadWorkbook(buffer, filename);
+      await saveWorkbookFile(buffer, filename);
       setExports((prev) => [record, ...prev.filter((item) => item.id !== record.id)]);
       toast(`已导出 ${filename}`, "ok");
     } catch (error) {
@@ -445,7 +439,7 @@ export function ExportScreen({ onNavigate }: NavProps) {
         snapshot: record.snapshot,
         settings,
       });
-      downloadWorkbook(buffer, record.filename);
+      await saveWorkbookFile(buffer, record.filename);
       toast(`已重新下载 ${record.filename}`, "ok");
     } catch (error) {
       console.error(error);

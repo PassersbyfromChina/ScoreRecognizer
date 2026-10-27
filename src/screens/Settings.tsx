@@ -86,6 +86,8 @@ export function SettingsScreen() {
             <ShieldCheck size={15} />
             <div>
               当前使用 DeepSeek 视觉模型（可看图）。key 只保存在本机；只有在你启用 AI 并执行识别时，答题卡图片才会发送给你的 AI 服务商。
+              <br />
+              没有填 Key、关闭 AI 或断网时，分数会自动改用内置的本地数字识别（离线运行，姓名可手动确认）。
             </div>
           </div>
 

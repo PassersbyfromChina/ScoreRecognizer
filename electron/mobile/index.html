@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0f172a" />
+<title>ScoreRecognizer · 手机拍摄</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:#0f172a;color:#e2e8f0;
+    font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+    display:flex;flex-direction:column;min-height:100vh;
+    -webkit-tap-highlight-color:transparent;
+  }
+  header{display:flex;align-items:center;gap:10px;padding:16px 18px 10px}
+  .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#f43f5e,#9f1239);display:grid;place-items:center;font-weight:800;color:#fff;font-size:17px}
+  header .name{font-weight:750;font-size:15px;color:#f8fafc}
+  header .sub{font-size:11px;color:#64748b;letter-spacing:.12em}
+  .status{margin-left:auto;font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:6px}
+  .dot{width:7px;height:7px;border-radius:50%;background:#f59e0b}
+  .dot.ok{background:#10b981}
+  main{flex:1;display:flex;flex-direction:column;gap:14px;padding:8px 18px 22px;max-width:560px;width:100%;margin:0 auto}
+  .hint{font-size:13px;line-height:1.7;color:#94a3b8}
+  .hint b{color:#e2e8f0}
+  .actions{display:grid;gap:10px;margin-top:4px}
+  button,label.btn{
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    height:56px;border-radius:14px;border:0;font-size:16px;font-weight:700;
+    background:#e11d48;color:#fff;cursor:pointer;width:100%;
+    box-shadow:0 10px 24px -12px rgba(225,29,72,.8);
+  }
+  label.btn.secondary{background:#1e293b;color:#e2e8f0;box-shadow:none;border:1px solid #334155}
+  button:disabled{opacity:.55}
+  input[type=file]{display:none}
+  .queue{margin-top:6px;display:flex;flex-direction:column;gap:8px}
+  .item{display:flex;align-items:center;gap:10px;background:#16213a;border:1px solid #26334d;border-radius:12px;padding:8px}
+  .item img{width:42px;height:56px;object-fit:cover;border-radius:6px;background:#0b1220}
+  .item .info{flex:1;min-width:0}
+  .item .t{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item .s{font-size:11px;color:#64748b;margin-top:2px}
+  .item .badge{font-size:11px;padding:2px 8px;border-radius:999px;background:#1e293b;color:#94a3b8;white-space:nowrap}
+  .item .badge.ok{background:#064e3b;color:#6ee7b7}
+  .item .badge.err{background:#7f1d1d;color:#fecaca}
+  .tip{margin-top:auto;font-size:11.5px;color:#475569;line-height:1.7}
+  .warn{background:#7f1d1d;color:#fee2e2;font-size:12.5px;border-radius:10px;padding:10px 12px;line-height:1.6}
+</style>
+</head>
+<body>
+<header>
+  <span class="mark">S</span>
+  <div>
+    <div class="name">ScoreRecognizer</div>
+    <div class="sub">手机拍摄</div>
+  </div>
+  <div class="status"><span class="dot" id="dot"></span><span id="statusText">正在连接电脑…</span></div>
+</header>
+<main>
+  <div class="warn" id="warn" style="display:none"></div>
+  <p class="hint">
+    这是<b>手机拍摄专用页面</b>：拍完自动传回电脑，识别和核对都在电脑上完成。<br />
+    把答题卡放平、四个角都拍进画面；可以连续拍多张。
+  </p>
+  <div class="actions">
+    <label class="btn" for="cameraInput">📷 拍一张答题卡</label>
+    <input id="cameraInput" type="file" accept="image/*" capture="environment" />
+    <label class="btn secondary" for="galleryInput">从相册选择（可多选）</label>
+    <input id="galleryInput" type="file" accept="image/*" multiple />
+  </div>
+  <div class="queue" id="queue"></div>
+  <div class="tip">传完可以关掉这个页面，电脑上会继续处理。若连接不上，请确认手机和电脑连的是同一个 Wi-Fi。</div>
+</main>
+<script>
+(function () {
+  var token = new URLSearchParams(location.search).get("t") || "";
+  var dot = document.getElementById("dot");
+  var statusText = document.getElementById("statusText");
+  var warn = document.getElementById("warn");
+  var queue = document.getElementById("queue");
+  var uploadQueue = [];
+  var uploading = false;
+
+  function setStatus(ok, text) {
+    dot.className = "dot" + (ok ? " ok" : "");
+    statusText.textContent = text;
+  }
+
+  fetch("/api/ping", { cache: "no-store" })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (d) {
+      if (d && d.ok) setStatus(true, "已连接电脑");
+      else setStatus(false, "连接异常");
+    })
+    .catch(function () {
+      setStatus(false, "连接失败");
+      warn.style.display = "block";
+      warn.textContent = "连不上电脑。请确认手机与电脑在同一个 Wi-Fi，并且在电脑上重新扫码打开本页。";
+    });
+
+  function addItem(file) {
+    var card = document.createElement("div");
+    card.className = "item";
+    var img = document.createElement("img");
+    img.alt = "";
+    img.src = URL.createObjectURL(file);
+    var info = document.createElement("div");
+    info.className = "info";
+    var t = document.createElement("div");
+    t.className = "t";
+    t.textContent = file.name || "照片";
+    var s = document.createElement("div");
+    s.className = "s";
+    var sizeMb = file.size / 1024 / 1024;
+    s.textContent = sizeMb.toFixed(1) + " MB";
+    var badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = "排队中";
+    info.appendChild(t);
+    info.appendChild(s);
+    card.appendChild(img);
+    card.appendChild(info);
+    card.appendChild(badge);
+    queue.insertBefore(card, queue.firstChild);
+    uploadQueue.push({ file: file, badge: badge });
+    pump();
+  }
+
+  function pump() {
+    if (uploading) return;
+    var next = uploadQueue.shift();
+    if (!next) return;
+    uploading = true;
+    next.badge.textContent = "上传中";
+    next.badge.className = "badge";
+    fetch("/api/upload?t=" + encodeURIComponent(token) + "&name=" + encodeURIComponent(next.file.name || "photo.jpg"), {
+      method: "POST",
+      headers: { "Content-Type": next.file.type || "image/jpeg" },
+      body: next.file,
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        if (d && d.ok) {
+          next.badge.textContent = "已传回电脑";
+          next.badge.className = "badge ok";
+        } else {
+          throw new Error((d && d.error) || "upload failed");
+        }
+      })
+      .catch(function () {
+        next.badge.textContent = "上传失败";
+        next.badge.className = "badge err";
+      })
+      .finally(function () {
+        uploading = false;
+        pump();
+      });
+  }
+
+  document.getElementById("cameraInput").addEventListener("change", function (e) {
+    var file = e.target.files && e.target.files[0];
+    if (file) addItem(file);
+    e.target.value = "";
+  });
+  document.getElementById("galleryInput").addEventListener("change", function (e) {
+    var files = Array.prototype.slice.call(e.target.files || []);
+    files.forEach(addItem);
+    e.target.value = "";
+  });
+})();
+</script>
+</body>
+</html>

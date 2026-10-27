@@ -195,6 +195,7 @@
   .shots{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
   .shot{margin:0;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(15,23,42,.03)}
   .shot img{display:block;width:100%;height:auto;background:#f8fafc}
+  .shot img.crop{height:300px;object-fit:cover;object-position:top center}
   .shot figcaption{padding:13px 16px;font-size:12.5px;color:var(--muted);line-height:1.6;border-top:1px solid var(--line)}
   @media (max-width:900px){.shots{grid-template-columns:1fr}}
 
@@ -434,6 +435,18 @@
           <img src="./assets/export.jpg" alt="导出界面：成绩预览与 Excel 导出" loading="lazy" />
           <figcaption>导出：姓名行、题号列、总分列；未确认格用红色问号标出</figcaption>
         </figure>
+        <figure class="shot reveal">
+          <img class="crop" src="./assets/pairing.jpg" alt="电脑端显示手机拍摄二维码" loading="lazy" />
+          <figcaption>手机拍摄：电脑生成二维码，手机扫码即可拍照上传</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <img class="crop" src="./assets/phone.jpg" alt="手机拍摄网页" loading="lazy" />
+          <figcaption>手机网页：点一下拍答题卡，照片实时传回电脑</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <img class="crop" src="./assets/mobile.jpg" alt="Android 手机上的应用界面" loading="lazy" />
+          <figcaption>Android 版：手机上也能独立拍摄、核对、导出</figcaption>
+        </figure>
       </div>
     </div>
   </section>
@@ -466,7 +479,7 @@
         </div>
         <div class="dl-card reveal" data-os="android">
           <div class="os"><span class="glyph">🤖</span>Android</div>
-          <div class="note">Android 10 及以上，支持独立识别与双机协作拍摄。</div>
+          <div class="note">Android 10 及以上。手机可独立使用，也可只当拍摄端配合电脑。</div>
           <a class="btn btn-ghost" data-dl="android" href="#download" aria-disabled="true">即将发布</a>
           <div class="meta" data-meta="android">开发中，敬请期待</div>
         </div>
@@ -509,6 +522,14 @@
         <details class="faq">
           <summary>数据存在哪里？会丢吗？</summary>
           <p>名单、图片和识别结果只保存在本机，并在拍摄、修改时实时写入。应用内保留导出备份，也可以手动把数据目录复制到别的电脑。</p>
+        </details>
+        <details class="faq">
+          <summary>手机怎么配合电脑拍摄？</summary>
+          <p>电脑和手机连同一个 Wi-Fi。电脑打开「拍摄 / 上传」→「手机拍摄」，会显示二维码和局域网地址；手机扫码打开网页，点「拍一张答题卡」即可。照片实时传回电脑并自动处理，手机不用安装 App，也不用一直开着页面。</p>
+        </details>
+        <details class="faq">
+          <summary>Android 版怎么安装？</summary>
+          <p>下载 APK 后点击安装，系统会提示允许「安装未知来源应用」，允许即可。当前为开发版（debug 签名），部分手机的安全软件可能提示风险，属于正常现象；后续版本会提供正式签名包。</p>
         </details>
         <details class="faq">
           <summary>AI 的 key 是什么？</summary>

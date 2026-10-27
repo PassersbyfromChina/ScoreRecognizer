@@ -11,4 +11,17 @@ contextBridge.exposeInMainWorld("desktop", {
   },
   /** 主进程版本号（打包后用） */
   getAppVersion: () => ipcRenderer.invoke("app:version"),
+
+  /** 局域网手机拍摄协作 */
+  lan: {
+    info: () => ipcRenderer.invoke("lan:info"),
+    start: () => ipcRenderer.invoke("lan:start"),
+    stop: () => ipcRenderer.invoke("lan:stop"),
+    /** 订阅手机传回的照片；返回取消订阅函数 */
+    onPhoto: (callback) => {
+      const handler = (_event, payload) => callback(payload);
+      ipcRenderer.on("lan:photo", handler);
+      return () => ipcRenderer.removeListener("lan:photo", handler);
+    },
+  },
 });
