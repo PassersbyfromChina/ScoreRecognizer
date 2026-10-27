@@ -1,18 +1,18 @@
-import type { DetectionResult, Point, Rect, Region } from "../types";
+﻿import type { DetectionResult, Point, Rect, Region } from "../types";
 import { canvasToBlob, cropCanvas, drawToCanvas, loadImageBitmap, warpCanvasToRect } from "./canvas";
 import { detectCardCorners } from "./detect";
 import { extractRedInk, type RedComponent } from "./red";
 import { isNativeMobile } from "../platform";
 
-/** A4 竖版：宽/高 */
+/** A4 绔栫増锛氬/楂?*/
 export const DEFAULT_ASPECT = 210 / 297;
 export const DEFAULT_LONG_SIDE = 1600;
 const MAX_SOURCE_LONG_SIDE = 2600;
-const MOBILE_LONG_SIDE = 1200;
-const MOBILE_MAX_SOURCE_LONG_SIDE = 2000;
-const MOBILE_DETECT_SIDE = 520;
+const MOBILE_LONG_SIDE = 1400;
+const MOBILE_MAX_SOURCE_LONG_SIDE = 2200;
+const MOBILE_DETECT_SIDE = 600;
 
-/** 手机端用略低的分辨率处理，速度更快；坐标是归一化的，模板在两端通用。 */
+/** 鎵嬫満绔敤鐣ヤ綆鐨勫垎杈ㄧ巼澶勭悊锛岄€熷害鏇村揩锛涘潗鏍囨槸褰掍竴鍖栫殑锛屾ā鏉垮湪涓ょ閫氱敤銆?*/
 export function processingLongSide(): number {
   return isNativeMobile() ? MOBILE_LONG_SIDE : DEFAULT_LONG_SIDE;
 }
@@ -35,16 +35,16 @@ export interface LoadedCard {
 
 export interface CorrectedCard {
   canvas: HTMLCanvasElement;
-  /** 标准卡长边像素 */
+  /** 鏍囧噯鍗￠暱杈瑰儚绱?*/
   longSide: number;
-  /** 宽/高 */
+  /** 瀹?楂?*/
   aspect: number;
   corners: [Point, Point, Point, Point];
   confidence: number;
   method: string;
 }
 
-/** 读入图片并在原图上检测答题卡四角（不矫正）。 */
+/** 璇诲叆鍥剧墖骞跺湪鍘熷浘涓婃娴嬬瓟棰樺崱鍥涜锛堜笉鐭锛夈€?*/
 export async function loadCard(blob: Blob): Promise<LoadedCard> {
   const bitmap = await loadImageBitmap(blob);
   const src = drawToCanvas(bitmap, bitmap.width, bitmap.height, maxSourceLongSide());
@@ -58,7 +58,7 @@ export async function loadCard(blob: Blob): Promise<LoadedCard> {
   };
 }
 
-/** 用四角把图片矫正成标准答题卡。 */
+/** 鐢ㄥ洓瑙掓妸鍥剧墖鐭鎴愭爣鍑嗙瓟棰樺崱銆?*/
 export function correctCard(
   source: HTMLCanvasElement,
   corners: [Point, Point, Point, Point],
@@ -95,7 +95,7 @@ export async function normalizeCard(
   };
 }
 
-/** 把「长边=1」坐标的区域换算成矫正图像素。 */
+/** 鎶娿€岄暱杈?1銆嶅潗鏍囩殑鍖哄煙鎹㈢畻鎴愮煫姝ｅ浘鍍忕礌銆?*/
 export function regionToPixels(region: Rect, longSidePx: number): { x: number; y: number; w: number; h: number } {
   return {
     x: region.x * longSidePx,
@@ -105,7 +105,7 @@ export function regionToPixels(region: Rect, longSidePx: number): { x: number; y
   };
 }
 
-/** 裁剪区域并向外扩一圈（红笔分数常写在题目区域外）。 */
+/** 瑁佸壀鍖哄煙骞跺悜澶栨墿涓€鍦堬紙绾㈢瑪鍒嗘暟甯稿啓鍦ㄩ鐩尯鍩熷锛夈€?*/
 export function cropExpanded(
   canvas: HTMLCanvasElement,
   rect: Rect,
@@ -126,13 +126,13 @@ export function cropExpanded(
 
 export interface CardInkAnalysis {
   components: RedComponent[];
-  /** 每个题目区域内（含一点外边距）的红笔组件数量 */
+  /** 姣忎釜棰樼洰鍖哄煙鍐咃紙鍚竴鐐瑰杈硅窛锛夌殑绾㈢瑪缁勪欢鏁伴噺 */
   perQuestion: Map<number, RedComponent[]>;
-  /** 姓名区域附近是否有黑色笔迹（简单用暗像素比例判断，后续可细化） */
+  /** 濮撳悕鍖哄煙闄勮繎鏄惁鏈夐粦鑹茬瑪杩癸紙绠€鍗曠敤鏆楀儚绱犳瘮渚嬪垽鏂紝鍚庣画鍙粏鍖栵級 */
   nameInk: boolean;
 }
 
-/** 本地分析：找出红笔组件，并按题目区域分组。 */
+/** 鏈湴鍒嗘瀽锛氭壘鍑虹孩绗旂粍浠讹紝骞舵寜棰樼洰鍖哄煙鍒嗙粍銆?*/
 export function analyzeInk(canvas: HTMLCanvasElement, regions: Region[], longSidePx: number): CardInkAnalysis {
   const extraction = extractRedInk(canvas);
   const perQuestion = new Map<number, RedComponent[]>();
@@ -163,7 +163,7 @@ export function analyzeInk(canvas: HTMLCanvasElement, regions: Region[], longSid
   return { components: extraction.components, perQuestion, nameInk };
 }
 
-/** 判断一个像素区域内是否有足够多的深色像素（手写黑色姓名）。 */
+/** 鍒ゆ柇涓€涓儚绱犲尯鍩熷唴鏄惁鏈夎冻澶熷鐨勬繁鑹插儚绱狅紙鎵嬪啓榛戣壊濮撳悕锛夈€?*/
 export function hasDarkPixels(canvas: HTMLCanvasElement, rect: { x: number; y: number; w: number; h: number }): boolean {
   const x = Math.max(0, Math.round(rect.x));
   const y = Math.max(0, Math.round(rect.y));
@@ -182,8 +182,9 @@ export function hasDarkPixels(canvas: HTMLCanvasElement, rect: { x: number; y: n
   return total > 0 && dark / total > 0.004;
 }
 
-/** 裁剪姓名区域（放大一点，宽高各留 20% 边距）。 */
+/** 瑁佸壀濮撳悕鍖哄煙锛堟斁澶т竴鐐癸紝瀹介珮鍚勭暀 20% 杈硅窛锛夈€?*/
 export async function cropNameRegion(canvas: HTMLCanvasElement, region: Region, longSidePx: number): Promise<Blob> {
   const cropped = cropExpanded(canvas, region, longSidePx, 0.25, 0.35);
   return canvasToBlob(cropped, "image/jpeg", 0.9);
 }
+

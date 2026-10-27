@@ -425,6 +425,8 @@ function CaptureRow({
 
   const meta = STATUS_META[capture.status];
   const issues = capture.answers.filter((a) => a.state !== "ok");
+  // 没有识别结果又有错误（例如图片损坏）：单独标成「处理失败」，避免和普通待确认混淆
+  const failed = capture.status === "pending_review" && capture.answers.length === 0 && !!capture.error;
 
   return (
     <tr>
@@ -450,6 +452,8 @@ function CaptureRow({
               </div>
             ) : null}
           </div>
+        ) : failed ? (
+          <span className="badge badge-red">处理失败</span>
         ) : (
           <span className={`badge ${meta.cls}`}>
             {meta.icon}
