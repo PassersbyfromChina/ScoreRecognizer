@@ -188,5 +188,6 @@ export interface NameImportResult {
 export interface DetectionResult {
   corners: [Point, Point, Point, Point];
   confidence: number;
-  method: "markers" | "paper-edge" | "manual" | "fallback";
+  /** frame = 整张画面都是纸（无需找边）；fallback = 没找到边，按画面范围处理 */
+  method: "markers" | "paper-edge" | "manual" | "fallback" | "frame";
 }

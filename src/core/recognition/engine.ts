@@ -347,6 +347,9 @@ export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<P
   const normalized = await normalizeCard(blob, { aspect: template.aspect, longSide: DEFAULT_LONG_SIDE });
   const canvas = normalized.canvas;
   const longSidePx = Math.max(canvas.width, canvas.height);
+  if (normalized.method === "fallback") {
+    warnings.push("没能自动找到答题卡边缘，已按整张画面处理；如果识别不准，请重拍（答题卡放平、四角都拍进画面）");
+  }
 
   onProgress?.("正在提取红色笔迹…");
   const extraction = extractRedInk(canvas);

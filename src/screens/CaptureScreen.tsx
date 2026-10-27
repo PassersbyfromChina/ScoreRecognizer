@@ -36,9 +36,9 @@ const STATUS_META: Record<
   done: { label: "已完成", cls: "badge-green", icon: <CheckCircle2 size={13} /> },
 };
 
-/** 只有真正的失败才记成错误展示；「没配 Key 用本地识别」等属于提示，不阻塞。 */
+/** 只有真正的失败/重要提示才记成错误展示；「没配 Key 用本地识别」等属于提示，不阻塞。 */
 function fatalWarning(warnings: string[]): string | undefined {
-  const fatal = warnings.filter((w) => /失败|无法|错误/.test(w));
+  const fatal = warnings.filter((w) => /失败|无法|错误|没能自动找到/.test(w));
   return fatal.length ? fatal.join("；") : undefined;
 }
 

@@ -143,7 +143,7 @@ export function TemplateScreen({ onNavigate }: NavProps) {
       setRegions([]);
       setSelectedId(null);
       setMode("draw-question");
-      if (loaded.detection && loaded.detection.confidence < 0.35) {
+      if (loaded.detection && loaded.detection.method === "fallback") {
         toast("自动找边缘不太确定，请检查图片方向；区域可以手动画", "info");
       } else {
         toast("答题卡已自动摆正", "ok");
