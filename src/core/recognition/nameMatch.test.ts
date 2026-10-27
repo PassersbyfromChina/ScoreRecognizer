@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { cleanNameText, levenshtein, matchStudent, normalizeName, pickNextStudent } from "./nameMatch";
+import {
+  cleanNameText,
+  levenshtein,
+  matchStudent,
+  normalizeName,
+  pickNextStudent,
+  rankNameCandidates,
+} from "./nameMatch";
 import type { Student } from "../types";
 
 const student = (id: string, name: string): Student => ({ id, name, order: 0 });
@@ -42,6 +49,29 @@ describe("nameMatch", () => {
   it("levenshtein 距离", () => {
     expect(levenshtein("张三", "张三")).toBe(0);
     expect(levenshtein("张三", "张山")).toBe(1);
+  });
+});
+
+describe("核对页姓名候选", () => {
+  it("完全匹配时只返回它自己，不夹带 60% 的近似候选", () => {
+    const candidates = rankNameCandidates(STUDENTS, "陈晓");
+    expect(candidates).toHaveLength(1);
+    expect(candidates[0].name).toBe("陈晓");
+    expect(candidates[0].score).toBe(1);
+  });
+
+  it("过滤掉已经分配给其他答题卡的学生", () => {
+    const candidates = rankNameCandidates(STUDENTS, "李燃", ["s2"]);
+    expect(candidates.every((c) => c.studentId !== "s2")).toBe(true);
+  });
+
+  it("低于 45% 的候选不展示，避免误导", () => {
+    const candidates = rankNameCandidates(STUDENTS, "蒋雯");
+    expect(candidates).toHaveLength(0);
+  });
+
+  it("没有姓名文本时没有候选", () => {
+    expect(rankNameCandidates(STUDENTS, undefined)).toHaveLength(0);
   });
 });
 

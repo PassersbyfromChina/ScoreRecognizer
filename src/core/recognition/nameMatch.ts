@@ -58,6 +58,25 @@ export function matchStudent(rawName: string | null | undefined, students: Stude
   return { name, confidence, studentId: confidence >= 0.7 ? best.studentId : undefined, candidates: scored.slice(0, 3) };
 }
 
+export type NameCandidate = NameMatch["candidates"][number];
+
+/**
+ * 核对页的姓名候选：过滤掉已分配给其他答题卡的学生；完全匹配时只留那一个；
+ * 否则返回最像的前 3 个（≥45%）。
+ */
+export function rankNameCandidates(
+  students: Student[],
+  rawName: string | null | undefined,
+  excludeStudentIds?: Iterable<string>,
+): NameCandidate[] {
+  const excluded = new Set(excludeStudentIds ?? []);
+  const result = matchStudent(rawName, students);
+  const candidates = result.candidates.filter((c) => !excluded.has(c.studentId));
+  const exact = candidates.filter((c) => c.score >= 0.99);
+  if (exact.length > 0) return exact.slice(0, 1);
+  return candidates.filter((c) => c.score >= 0.45).slice(0, 3);
+}
+
 /** 去掉「（可能是 X）」这类候选提示，只留识别/建议的姓名。 */
 export function cleanNameText(nameText: string | undefined | null): string {
   if (!nameText) return "";

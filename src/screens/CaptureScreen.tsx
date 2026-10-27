@@ -42,6 +42,17 @@ function fatalWarning(warnings: string[]): string | undefined {
   return fatal.length ? fatal.join("；") : undefined;
 }
 
+/** 把浏览器/解码器的英文异常翻成老师能看懂的中文提示。 */
+function friendlyProcessError(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  if (!raw) return "自动处理失败，请重试";
+  if (/decode|image|bitmap|invalid|corrupt|source image|could not be decoded/i.test(raw)) {
+    return "图片无法读取（可能文件已损坏或格式不支持），请删除后重新拍摄 / 上传";
+  }
+  if (/原始图片不见/.test(raw)) return raw;
+  return raw.length > 120 ? `${raw.slice(0, 120)}…` : raw;
+}
+
 export function CaptureScreen({ onNavigate }: NavProps) {
   const project = useAppStore((s) => s.project);
   const template = useAppStore((s) => s.template);
@@ -167,7 +178,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
           await saveCapture({
             ...next,
             status: "pending_review",
-            error: e instanceof Error ? e.message : "自动处理失败",
+            error: friendlyProcessError(e),
           });
         }
         console.warn(`[capture] processed ${next.id} in ${Math.round(performance.now() - startedAt)}ms`);

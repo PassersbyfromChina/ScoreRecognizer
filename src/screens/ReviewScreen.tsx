@@ -20,7 +20,7 @@ import type { NavProps } from "../navigation";
 import { useAppStore } from "../core/store";
 import type { AnswerRecord, AnswerState, Capture, CaptureStatus, CardTemplate, Rect, Region } from "../core/types";
 import { getImageUrl, saveCapture } from "../core/storage/repo";
-import { matchStudent } from "../core/recognition/nameMatch";
+import { matchStudent, rankNameCandidates } from "../core/recognition/nameMatch";
 import { toast } from "../components/Toast";
 import "./review.css";
 
@@ -288,9 +288,11 @@ export function ReviewScreen({ onNavigate }: NavProps) {
   const nameRegion = useMemo(() => template?.regions.find((r) => r.kind === "name") ?? null, [template]);
   const nameCandidates = useMemo(() => {
     if (!capture || !project) return [];
-    const result = matchStudent(capture.nameText, project.students);
-    return result.candidates.filter((cand) => cand.score >= 0.45).slice(0, 3);
-  }, [capture, project]);
+    const usedByOthers = captures
+      .filter((c) => c.id !== capture.id && c.studentId)
+      .map((c) => c.studentId as string);
+    return rankNameCandidates(project.students, capture.nameText, usedByOthers);
+  }, [capture, project, captures]);
 
   const { url: imageUrl, loading: imageLoading } = useImageUrl(capture?.correctedKey ?? capture?.imageKey);
 
