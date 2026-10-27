@@ -18,7 +18,16 @@
 ## 平台
 
 - Windows x64 / Windows ARM64（Windows 10 及以上）
-- Android 10 及以上
+- Android 10 及以上（开发中，后续版本提供）
+
+## 下载
+
+最新版本：<https://github.com/PassersbyfromChina/ScoreRecognizer/releases/latest>
+
+- Windows x64 / ARM64 安装包（NSIS）
+- Windows x64 / ARM64 便携版 ZIP（解压即用；系统启用「智能应用控制」时请用这个）
+
+产品页与下载入口：<https://passersbyfromchina.github.io/ScoreRecognizer/>
 
 ## 开发
 
