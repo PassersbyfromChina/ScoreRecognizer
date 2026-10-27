@@ -91,36 +91,60 @@ export async function callVision(
     content.push({ type: "image_url", image_url: { url: img.dataUrl } });
   }
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  let res: Response;
-  try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${settings.apiKey}`,
-      },
-      body: JSON.stringify({
-        model: settings.aiModel,
-        messages: [
-          { role: "system", content: "你是严谨的答题卡阅卷助手，只输出 JSON。" },
-          { role: "user", content },
-        ],
-        temperature: 0,
-        max_tokens: 2000,
-        response_format: { type: "json_object" },
-      }),
-      signal: controller.signal,
-    });
-  } finally {
-    clearTimeout(timer);
-  }
+  const body = JSON.stringify({
+    model: settings.aiModel,
+    messages: [
+      { role: "system", content: "你是严谨的答题卡阅卷助手，只输出 JSON。" },
+      { role: "user", content },
+    ],
+    temperature: 0,
+    max_tokens: 2000,
+    response_format: { type: "json_object" },
+  });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`AI 请求失败（${res.status}）：${text.slice(0, 300)}`);
+  const sendOnce = async (): Promise<Response> => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${settings.apiKey}`,
+        },
+        body,
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+  // 网络抖动/服务端 5xx/限流时自动重试一次；参数错误（4xx）不重试，超时也不重试（避免翻倍等待）
+  let res: Response | null = null;
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const isLast = attempt === 1;
+    try {
+      const response = await sendOnce();
+      if (response.ok) {
+        res = response;
+        break;
+      }
+      const text = await response.text().catch(() => "");
+      const error = new Error(`AI 请求失败（${response.status}）：${text.slice(0, 300)}`);
+      if (isLast || !(response.status >= 500 || response.status === 429)) throw error;
+      lastError = error;
+      await sleep(1200);
+    } catch (e) {
+      if (isLast || (e instanceof Error && e.name === "AbortError")) throw e;
+      lastError = e;
+      await sleep(800);
+    }
   }
+  if (!res) throw lastError instanceof Error ? lastError : new Error("AI 请求失败，请稍后重试");
+
   const data = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
   };
