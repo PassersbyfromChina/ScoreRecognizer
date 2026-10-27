@@ -1,5 +1,5 @@
 import type { AnswerRecord, AppSettings, CardTemplate, Capture, Region, Student } from "../types";
-import { DEFAULT_LONG_SIDE, cropExpanded, cropNameRegion, normalizeCard, regionToPixels } from "../imaging/pipeline";
+import { cropExpanded, cropNameRegion, normalizeCard, processingLongSide, regionToPixels } from "../imaging/pipeline";
 import { cropCanvas, canvasToBlob } from "../imaging/canvas";
 import { extractRedInk, type RedComponent } from "../imaging/red";
 import { recognizeCrops, type CropImage } from "./aiRecognize";
@@ -350,7 +350,7 @@ export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<P
   const warnings: string[] = [];
 
   onProgress?.("正在识别答题卡边缘…");
-  const normalized = await normalizeCard(blob, { aspect: template.aspect, longSide: DEFAULT_LONG_SIDE });
+  const normalized = await normalizeCard(blob, { aspect: template.aspect, longSide: processingLongSide() });
   const canvas = normalized.canvas;
   const longSidePx = Math.max(canvas.width, canvas.height);
   if (normalized.method === "fallback") {

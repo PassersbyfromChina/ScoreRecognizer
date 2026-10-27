@@ -2,11 +2,28 @@ import type { DetectionResult, Point, Rect, Region } from "../types";
 import { canvasToBlob, cropCanvas, drawToCanvas, loadImageBitmap, warpCanvasToRect } from "./canvas";
 import { detectCardCorners } from "./detect";
 import { extractRedInk, type RedComponent } from "./red";
+import { isNativeMobile } from "../platform";
 
 /** A4 竖版：宽/高 */
 export const DEFAULT_ASPECT = 210 / 297;
 export const DEFAULT_LONG_SIDE = 1600;
 const MAX_SOURCE_LONG_SIDE = 2600;
+const MOBILE_LONG_SIDE = 1200;
+const MOBILE_MAX_SOURCE_LONG_SIDE = 2000;
+const MOBILE_DETECT_SIDE = 520;
+
+/** 手机端用略低的分辨率处理，速度更快；坐标是归一化的，模板在两端通用。 */
+export function processingLongSide(): number {
+  return isNativeMobile() ? MOBILE_LONG_SIDE : DEFAULT_LONG_SIDE;
+}
+
+function maxSourceLongSide(): number {
+  return isNativeMobile() ? MOBILE_MAX_SOURCE_LONG_SIDE : MAX_SOURCE_LONG_SIDE;
+}
+
+function detectLongSide(): number {
+  return isNativeMobile() ? MOBILE_DETECT_SIDE : 720;
+}
 
 export interface LoadedCard {
   canvas: HTMLCanvasElement;
@@ -30,8 +47,8 @@ export interface CorrectedCard {
 /** 读入图片并在原图上检测答题卡四角（不矫正）。 */
 export async function loadCard(blob: Blob): Promise<LoadedCard> {
   const bitmap = await loadImageBitmap(blob);
-  const src = drawToCanvas(bitmap, bitmap.width, bitmap.height, MAX_SOURCE_LONG_SIDE);
-  const detection = detectCardCorners(src, { width: src.width, height: src.height });
+  const src = drawToCanvas(bitmap, bitmap.width, bitmap.height, maxSourceLongSide());
+  const detection = detectCardCorners(src, { width: src.width, height: src.height }, detectLongSide());
   return {
     canvas: src,
     corners: detection.corners,
@@ -46,7 +63,7 @@ export function correctCard(
   source: HTMLCanvasElement,
   corners: [Point, Point, Point, Point],
   aspect = DEFAULT_ASPECT,
-  longSide = DEFAULT_LONG_SIDE,
+  longSide = processingLongSide(),
 ): HTMLCanvasElement {
   const target = targetSize(aspect, longSide);
   return warpCanvasToRect(source, corners, target.width, target.height);
@@ -66,7 +83,7 @@ export async function normalizeCard(
   const loaded = await loadCard(blob);
   const corners = opts?.corners ?? loaded.corners;
   const aspect = opts?.aspect ?? DEFAULT_ASPECT;
-  const longSide = opts?.longSide ?? DEFAULT_LONG_SIDE;
+  const longSide = opts?.longSide ?? processingLongSide();
   const canvas = correctCard(loaded.canvas, corners, aspect, longSide);
   return {
     canvas,

@@ -350,12 +350,13 @@ function finalizeEstimate(estimate: QuadEstimate, score: number): QuadEstimate {
   return { ...estimate, confidence };
 }
 
-/** 用降采样画布上的局部亮度区域估计答题卡四角。 */
+/** 用降采样画布上的局部亮度区域估计答题卡四角。maxSide 越小越快，手机端用较小值。 */
 export function detectCardCorners(
   source: HTMLCanvasElement,
   originalSize: { width: number; height: number },
+  maxSide = 720,
 ): DetectionResult {
-  const scaleDown = Math.min(1, 720 / Math.max(source.width, source.height));
+  const scaleDown = Math.min(1, maxSide / Math.max(source.width, source.height));
   const w = Math.max(1, Math.round(source.width * scaleDown));
   const h = Math.max(1, Math.round(source.height * scaleDown));
   const small = document.createElement("canvas");

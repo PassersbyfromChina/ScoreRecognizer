@@ -1,6 +1,15 @@
 /** 跨平台能力：判断运行环境、保存文件（桌面浏览器 / Android WebView）。 */
 
 export function isNativeMobile(): boolean {
+  // 开发期可用 localStorage 强制模拟手机端（生产构建里 import.meta.env.DEV 为 false，会被去掉）
+  if (import.meta.env.DEV) {
+    try {
+      if (localStorage.getItem("force-mobile") === "1") return true;
+      if (new URLSearchParams(window.location.search).get("mobile") === "1") return true;
+    } catch {
+      /* ignore */
+    }
+  }
   const cap = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } }).Capacitor;
   return Boolean(cap?.isNativePlatform?.());
 }

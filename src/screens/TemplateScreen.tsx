@@ -17,7 +17,7 @@ import {
 import type { NavProps } from "../navigation";
 import { useAppStore } from "../core/store";
 import type { CardTemplate, Region } from "../core/types";
-import { DEFAULT_ASPECT, DEFAULT_LONG_SIDE, correctCard, loadCard } from "../core/imaging/pipeline";
+import { DEFAULT_ASPECT, correctCard, loadCard, processingLongSide } from "../core/imaging/pipeline";
 import { canvasToBlob, canvasToDataUrl } from "../core/imaging/canvas";
 import { segmentCard } from "../core/ai/deepseek";
 import { getImageBlob, getImageUrl, newId, putImage, saveTemplate } from "../core/storage/repo";
@@ -90,7 +90,7 @@ export function TemplateScreen({ onNavigate }: NavProps) {
         if (template.imageKey) sampleBlob = (await getImageBlob(template.imageKey)) ?? null;
         if (!canvas && sampleBlob) {
           const loaded = await loadCard(sampleBlob);
-          canvas = correctCard(loaded.canvas, corners, template.aspect, DEFAULT_LONG_SIDE);
+          canvas = correctCard(loaded.canvas, corners, template.aspect, processingLongSide());
           const blob = await canvasToBlob(canvas, "image/jpeg", 0.9);
           imageUrl = addUrl(URL.createObjectURL(blob));
           corners = loaded.corners;
@@ -128,7 +128,7 @@ export function TemplateScreen({ onNavigate }: NavProps) {
     try {
       const loaded = await loadCard(file);
       const aspect = DEFAULT_ASPECT;
-      const canvas = correctCard(loaded.canvas, loaded.corners, aspect, DEFAULT_LONG_SIDE);
+      const canvas = correctCard(loaded.canvas, loaded.corners, aspect, processingLongSide());
       const correctedBlob = await canvasToBlob(canvas, "image/jpeg", 0.92);
       const url = addUrl(URL.createObjectURL(correctedBlob));
       setEditing({
