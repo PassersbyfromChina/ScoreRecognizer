@@ -1,7 +1,8 @@
 /** 开发期演示数据（只在 dev 服务器 + ?seed=demo 时生效）。 */
 import type { CardTemplate, Project, Region } from "./types";
-import { DEFAULT_ASPECT, DEFAULT_LONG_SIDE, correctCard } from "./imaging/pipeline";
-import { canvasToBlob, drawToCanvas, loadImageBitmap } from "./imaging/canvas";
+import { DEFAULT_ASPECT, DEFAULT_LONG_SIDE, correctCard, loadCard, targetSize } from "./imaging/pipeline";
+import { applyHomography, solveHomography } from "./imaging/geometry";
+import { canvasToBlob } from "./imaging/canvas";
 
 const DEMO_NAMES = [
   "陈晓", "李然", "王雨", "赵一", "周童", "吴迪", "郑好", "孙悦",
@@ -124,24 +125,41 @@ async function seedTemplate(project: Project): Promise<CardTemplate | null> {
   const resp = await fetch("./samples/card-flat-1.jpg");
   if (!resp.ok) return null;
   const blob = await resp.blob();
-  const bitmap = await loadImageBitmap(blob);
-  const src = drawToCanvas(bitmap, bitmap.width, bitmap.height);
-  const W = src.width;
-  const H = src.height;
-  const canvas = correctCard(
-    src,
-    [
-      { x: 0, y: 0 },
-      { x: W, y: 0 },
-      { x: W, y: H },
-      { x: 0, y: H },
-    ],
-    DEFAULT_ASPECT,
-    DEFAULT_LONG_SIDE,
-  );
+  // 和真实模板流程一致：先检测边缘，再把版面坐标投影到矫正后的画布上
+  const loaded = await loadCard(blob);
+  const canvas = correctCard(loaded.canvas, loaded.corners, DEFAULT_ASPECT, DEFAULT_LONG_SIDE);
+  const target = targetSize(DEFAULT_ASPECT, DEFAULT_LONG_SIDE);
+  const long = Math.max(target.width, target.height);
+  const homography = solveHomography(loaded.corners, [
+    { x: 0, y: 0 },
+    { x: target.width, y: 0 },
+    { x: target.width, y: target.height },
+    { x: 0, y: target.height },
+  ]);
 
-  // 与 _build/gen_samples.py 里的排版保持一致
-  const long = H;
+  // 与 _build/gen_samples.py 里的排版保持一致（源图 1240x1754）
+  const LAYOUT_W = 1240;
+  const LAYOUT_H = 1754;
+  const scaleX = loaded.width / LAYOUT_W;
+  const scaleY = loaded.height / LAYOUT_H;
+  const norm = (x: number, y: number) => {
+    const p = applyHomography(homography, { x: x * scaleX, y: y * scaleY });
+    return { x: p.x / long, y: p.y / long };
+  };
+  const makeRegion = (
+    id: string,
+    kind: Region["kind"],
+    x: number,
+    y: number,
+    w: number,
+    h: number,
+    questionNo?: number,
+  ): Region => {
+    const tl = norm(x, y);
+    const br = norm(x + w, y + h);
+    return { id, kind, questionNo, x: tl.x, y: tl.y, w: br.x - tl.x, h: br.y - tl.y };
+  };
+
   const boxW = 480;
   const boxH = 118;
   const top = 300;
@@ -153,24 +171,9 @@ async function seedTemplate(project: Project): Promise<CardTemplate | null> {
     const row = Math.floor(i / 2);
     const x = x0s[col];
     const y = top + row * (boxH + gap);
-    regions.push({
-      id: `rg_dev_${i + 1}`,
-      kind: "question",
-      questionNo: i + 1,
-      x: x / long,
-      y: y / long,
-      w: boxW / long,
-      h: boxH / long,
-    });
+    regions.push(makeRegion(`rg_dev_${i + 1}`, "question", x, y, boxW, boxH, i + 1));
   }
-  regions.push({
-    id: "rg_dev_name",
-    kind: "name",
-    x: 145 / long,
-    y: 180 / long,
-    w: 285 / long,
-    h: 55 / long,
-  });
+  regions.push(makeRegion("rg_dev_name", "name", 145, 180, 285, 55));
 
   const now = Date.now();
   const correctedKey = await repo.putImage(await canvasToBlob(canvas, "image/jpeg", 0.92));
@@ -180,16 +183,11 @@ async function seedTemplate(project: Project): Promise<CardTemplate | null> {
     name: `${project.name} 答题卡模板`,
     createdAt: now,
     updatedAt: now,
-    imageWidth: canvas.width,
-    imageHeight: canvas.height,
+    imageWidth: loaded.width,
+    imageHeight: loaded.height,
     imageKey,
     correctedKey,
-    corners: [
-      { x: 0, y: 0 },
-      { x: W, y: 0 },
-      { x: W, y: H },
-      { x: 0, y: H },
-    ],
+    corners: loaded.corners,
     regions,
     aspect: DEFAULT_ASPECT,
   };

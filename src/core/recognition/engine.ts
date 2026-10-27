@@ -169,10 +169,15 @@ function pickScoreCluster(
     if (!u) continue;
     const cx = u.x + u.w / 2;
     const cy = u.y + u.h / 2;
-    const dist = Math.hypot(cx - regionCx, cy - regionCy);
     // 太小的噪点组不参与
     if (u.h < longSidePx * 0.01) continue;
-    const score = dist;
+    let score = Math.hypot(cx - regionCx, cy - regionCy);
+    const insideRegion = cx > px.x && cx < px.x + px.w && cy > px.y && cy < px.y + px.h;
+    // 老师通常把分数写在题目框外（右边最多）；框内的红勾/题目笔迹优先级更低
+    if (!insideRegion) score -= px.w * 0.4;
+    if (cx > px.x + px.w * 0.92) score -= px.w * 0.3;
+    // 离题目行太远（上一行/下一行）的组不要抢
+    if (cy < px.y - px.h * 0.5 || cy > px.y + px.h * 1.5) score += px.h * 0.5;
     if (score < bestScore) {
       bestScore = score;
       best = cluster;
@@ -243,7 +248,8 @@ function evaluateAnswer(
       return { questionNo, rawScore: null, confidence: 0, state: "missing", finalScore: null, inkBox, note: "没有找到红色笔迹" };
     }
     if (localValue != null) {
-      const strong = localConf >= 0.9;
+      // 只有非常确定的（≥99%）才标「识别正常」；99% 以下给建议但要求人工确认，避免把低置信度结果当正确答案
+      const strong = localConf >= 0.99;
       return {
         questionNo,
         rawScore: localValue,
@@ -251,7 +257,7 @@ function evaluateAnswer(
         state: strong ? "ok" : "low_confidence",
         finalScore: null,
         inkBox,
-        note: strong ? "本地识别" : "本地识别（置信度较低），请确认",
+        note: strong ? "本地识别" : "本地识别（置信度较低），请核对",
       };
     }
     return {
