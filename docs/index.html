@@ -219,6 +219,10 @@
   .dl-foot a{color:var(--muted);text-decoration:underline;text-underline-offset:3px}
 
   /* faq */
+  .changelog{display:grid;gap:10px}
+  .log-item{display:flex;align-items:baseline;gap:14px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+  .log-item b{min-width:92px;color:var(--red);font-size:13px;letter-spacing:.2px}
+  .log-item span{color:#475569;font-size:13.5px;line-height:1.7}
   details.faq{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;margin-bottom:12px}
   details.faq[open]{box-shadow:0 1px 2px rgba(15,23,42,.03)}
   details.faq summary{cursor:pointer;font-weight:650;font-size:15.5px;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:16px}
@@ -488,6 +492,29 @@
         <span>系统要求：Windows 10 及以上（x64 / ARM64）· Android 10 及以上</span>
         <span>Windows 便携版不会写入注册表，适合无法运行安装包的环境。</span>
         <a id="releases-link" href="https://github.com/PassersbyfromChina/ScoreRecognizer/releases" target="_blank" rel="noopener">全部版本与更新日志 →</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="changelog">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="kicker">更新日志</p>
+        <h2>每个版本做了什么</h2>
+        <p>只列主要变化；完整安装包与说明见 GitHub Releases。</p>
+      </div>
+      <div class="changelog">
+        <div class="log-item reveal"><b>v0.4.1</b><span>AI 请求遇网络抖动/服务端错误自动重试一次，减少无谓回退。</span></div>
+        <div class="log-item reveal"><b>v0.4.0</b><span>新增 AI「整张识别」模式（设置里可选逐题裁剪/整张），失败自动回退本地。</span></div>
+        <div class="log-item reveal"><b>v0.3.10</b><span>应用内「使用说明」；负号被误判为噪迹时保留低置信度候选，不悄悄读成正数。</span></div>
+        <div class="log-item reveal"><b>v0.3.9</b><span>手机端分辨率调整到 1400（准确率接近桌面）；坏图在列表里标「处理失败」。</span></div>
+        <div class="log-item reveal"><b>v0.3.8</b><span>手机端处理提速（像素量减少）；开发期支持模拟手机端。</span></div>
+        <div class="log-item reveal"><b>v0.3.7</b><span>核对页「通过正常题」一键批过；处理时显示阶段进度；矫正重采样提速约 40%。</span></div>
+        <div class="log-item reveal"><b>v0.3.5</b><span>重写答题卡边缘检测：旋转、透视、阴影、模糊都更稳（透视误差从约 6% 降到 0.2%）。</span></div>
+        <div class="log-item reveal"><b>v0.3.3 / v0.3.4</b><span>离线按名单顺序建议姓名（需确认）；姓名匹配更保守；坏图中文提示。</span></div>
+        <div class="log-item reveal"><b>v0.3.0 – v0.3.2</b><span>完整备份/恢复；Android 模拟器全流程验证与手机布局修复；AI 识别失败提示与本地兜底。</span></div>
+        <div class="log-item reveal"><b>v0.2.0</b><span>手机与电脑局域网协作（扫码拍照实时回传）；Android 版；离线本地数字识别。</span></div>
+        <div class="log-item reveal"><b>v0.1.0</b><span>首个公开版本：Excel 名单、模板划分、批量拍摄、三种核对视图、Excel 导出、Windows x64/ARM64。</span></div>
       </div>
     </div>
   </section>
