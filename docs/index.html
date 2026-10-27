@@ -472,7 +472,7 @@
         </div>
         <div class="dl-card reveal" data-os="win-arm64">
           <div class="os"><span class="glyph">⊞</span>Windows on ARM</div>
-          <div class="note">Windows 11 ARM64，如 Surface、骁龙笔记本。</div>
+          <div class="note">Windows 11 ARM64，如 Surface、骁龙笔记本。本版提供便携版 ZIP（解压即用）。</div>
           <a class="btn btn-ghost" data-dl="win-arm64" href="#download" aria-disabled="true">即将发布</a>
           <a class="portable" data-portable="win-arm64" hidden>或下载便携版 ZIP（解压即用）</a>
           <div class="meta" data-meta="win-arm64">开发中，敬请期待</div>
@@ -658,7 +658,8 @@
     document.getElementById("hero-version").textContent = v;
     var assets = pickAssets(rel.assets);
     setDownload("win-x64", assets.win64);
-    setDownload("win-arm64", assets.winArm);
+    // ARM64 若没有安装包，直接用便携版 ZIP 作为主下载，避免出现「即将发布」
+    setDownload("win-arm64", assets.winArm || assets.winArmZip);
     setDownload("android", assets.android);
     setPortable("win-x64", assets.win64Zip);
     setPortable("win-arm64", assets.winArmZip);
