@@ -61,6 +61,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
   const refreshCaptures = useAppStore((s) => s.refreshCaptures);
 
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [stageText, setStageText] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [phoneOpen, setPhoneOpen] = useState(false);
@@ -141,6 +142,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
         const next = list.find((c) => c.status === "pending_process");
         if (!next) break;
         setProcessingId(next.id);
+        setStageText("准备处理…");
         const startedAt = performance.now();
         // 离线按名单顺序给姓名建议（仅当用户开启；仍会标记为待确认）
         let nameHint: { studentId: string; name: string } | null = null;
@@ -159,6 +161,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
             template,
             students: project.students,
             nameHint,
+            onProgress: (stage) => setStageText(stage),
           });
           const correctedKey = await putImage(result.correctedBlob);
           const updated: Capture = {
@@ -187,6 +190,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
     } finally {
       busyRef.current = false;
       setProcessingId(null);
+      setStageText(null);
       await refreshCaptures();
     }
   }, [refreshCaptures]);
@@ -259,7 +263,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
           <h1>拍摄 / 上传答题卡</h1>
           <div className="desc">
             图片实时保存；上传后自动矫正、识别，处理好的会进入「待确认」。已加入 {captures.length} 张
-            {processingId ? " · 正在处理 1 张…" : queue.length > 0 ? ` · 队列 ${queue.length} 张` : ""}
+            {processingId ? ` · ${stageText ?? "正在处理 1 张…"}` : queue.length > 0 ? ` · 队列 ${queue.length} 张` : ""}
           </div>
         </div>
         <div className="actions">
@@ -355,6 +359,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
                       key={c.id}
                       capture={c}
                       processing={processingId === c.id}
+                      stage={processingId === c.id ? stageText ?? undefined : undefined}
                       studentName={project.students.find((s) => s.id === c.studentId)?.name}
                       onConfirm={() => onNavigate("review")}
                       onRetry={() => retry(c)}
@@ -393,6 +398,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
 function CaptureRow({
   capture,
   processing,
+  stage,
   studentName,
   onConfirm,
   onRetry,
@@ -400,6 +406,7 @@ function CaptureRow({
 }: {
   capture: Capture;
   processing: boolean;
+  stage?: string;
   studentName?: string;
   onConfirm: () => void;
   onRetry: () => void;
@@ -432,10 +439,17 @@ function CaptureRow({
       </td>
       <td>
         {processing ? (
-          <span className="badge badge-amber">
-            <Loader2 size={12} className="spin" />
-            处理中
-          </span>
+          <div>
+            <span className="badge badge-amber">
+              <Loader2 size={12} className="spin" />
+              处理中
+            </span>
+            {stage ? (
+              <div className="faint small" style={{ marginTop: 4, maxWidth: 180 }}>
+                {stage}
+              </div>
+            ) : null}
+          </div>
         ) : (
           <span className={`badge ${meta.cls}`}>
             {meta.icon}

@@ -3,6 +3,7 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import {
   AlertTriangle,
   Check,
+  CheckCheck,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -22,6 +23,7 @@ import type { AnswerRecord, AnswerState, Capture, CaptureStatus, CardTemplate, R
 import { getImageUrl, saveCapture } from "../core/storage/repo";
 import { matchStudent, rankNameCandidates } from "../core/recognition/nameMatch";
 import { toast } from "../components/Toast";
+import { ConfirmDialog } from "../components/Modal";
 import "./review.css";
 
 type ViewMode = "page" | "zoom" | "table";
@@ -250,6 +252,7 @@ export function ReviewScreen({ onNavigate }: NavProps) {
   const [zoom, setZoom] = useState(1);
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const [notice, setNotice] = useState<{ kind: "info" | "warn" | "danger"; text: string } | null>(null);
+  const [confirmPassAll, setConfirmPassAll] = useState(false);
   const [nameAttention, setNameAttention] = useState(false);
   const [paperSize, setPaperSize] = useState({ w: 0, h: 0 });
   const [imageVersion, setImageVersion] = useState(0);
@@ -270,6 +273,10 @@ export function ReviewScreen({ onNavigate }: NavProps) {
   const safeIndex = Math.min(qIndex, Math.max(0, questions.length - 1));
   const current: AnswerRecord | null = questions[safeIndex] ?? null;
   const confirmedCount = useMemo(() => questions.filter((a) => a.finalScore != null).length, [questions]);
+  const passableCount = useMemo(
+    () => questions.filter((a) => a.finalScore == null && a.state === "ok" && a.rawScore != null).length,
+    [questions],
+  );
   const cardPos = reviewList.findIndex((c) => c.id === currentId);
   const cardIndex = cardPos >= 0 ? cardPos + 1 : reviewList.length > 0 ? 1 : 0;
   const student = useMemo(
@@ -572,6 +579,30 @@ export function ReviewScreen({ onNavigate }: NavProps) {
     if (questions.length === 0) toast("这张答题卡还没有识别结果", "err");
   }
 
+  /** 把本张卡里所有「识别正常」的题按识别值一次通过；缺分/看不清/一题多分保持不动。 */
+  async function passAllNormal() {
+    const base = captureRef.current;
+    if (!base) return;
+    const count = base.answers.filter(
+      (a) => a.finalScore == null && a.state === "ok" && a.rawScore != null,
+    ).length;
+    setConfirmPassAll(false);
+    if (count === 0) {
+      toast("这张卡没有可以自动通过的题", "info");
+      return;
+    }
+    await commit((prev) => ({
+      ...prev,
+      answers: prev.answers.map((a) =>
+        a.finalScore == null && a.state === "ok" && a.rawScore != null
+          ? { ...a, finalScore: a.rawScore, state: "edited" as const }
+          : a,
+      ),
+    }));
+    setNotice(null);
+    toast(`已按识别值通过 ${count} 道正常题，其余仍需人工确认`, "ok");
+  }
+
   async function confirmEdit() {
     const answer = current;
     if (!answer) return;
@@ -846,7 +877,18 @@ export function ReviewScreen({ onNavigate }: NavProps) {
             </span>
           </div>
         </div>
-        <div className="actions">
+        <div className="actions" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          {passableCount > 0 ? (
+            <button
+              type="button"
+              className="btn btn-sm btn-secondary"
+              onClick={() => setConfirmPassAll(true)}
+              title="把这张卡里「识别正常」的题按识别值全部通过，没识别到/看不清的题不会动"
+            >
+              <CheckCheck size={15} />
+              通过正常题（{passableCount}）
+            </button>
+          ) : null}
           <div className="rv-tabs" role="tablist" aria-label="核对视图">
             {VIEW_META.map((item) => {
               const Icon = item.icon;
@@ -1477,6 +1519,21 @@ export function ReviewScreen({ onNavigate }: NavProps) {
           </aside>
         ) : null}
       </div>
+
+      {confirmPassAll ? (
+        <ConfirmDialog
+          title="通过所有识别正常的题"
+          message={
+            <>
+              将把这张答题卡里 <b>{passableCount}</b> 道「识别正常」的题按当前识别值通过。
+              没识别到、看不清、一题多分的题不会被改动，仍需你逐题确认。确定继续吗？
+            </>
+          }
+          confirmText="全部通过"
+          onCancel={() => setConfirmPassAll(false)}
+          onConfirm={() => void passAllNormal()}
+        />
+      ) : null}
     </div>
   );
 }

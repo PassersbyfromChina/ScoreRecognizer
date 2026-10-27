@@ -74,37 +74,53 @@ export function warpCanvasToRect(
   const outImage = outCtx.createImageData(targetW, targetH);
   const dst = outImage.data;
 
+  // 反向采样（双线性），x 方向用增量计算减少乘法；这是处理一张卡里最耗时的像素循环
+  const h0 = H[0], h1 = H[1], h2 = H[2];
+  const h3 = H[3], h4 = H[4], h5 = H[5];
+  const h6 = H[6], h7 = H[7], h8 = H[8];
+  let di = 0;
   for (let y = 0; y < targetH; y++) {
+    let nx = h1 * y + h2;
+    let ny = h4 * y + h5;
+    let den = h7 * y + h8;
     for (let x = 0; x < targetW; x++) {
-      const denom = H[6] * x + H[7] * y + H[8];
-      const sx = (H[0] * x + H[1] * y + H[2]) / denom;
-      const sy = (H[3] * x + H[4] * y + H[5]) / denom;
-      const di = (y * targetW + x) * 4;
+      const sx = nx / den;
+      const sy = ny / den;
       if (sx < 0 || sy < 0 || sx >= sw - 1 || sy >= sh - 1) {
         dst[di] = 244;
         dst[di + 1] = 245;
         dst[di + 2] = 248;
         dst[di + 3] = 255;
-        continue;
+      } else {
+        const x0 = sx | 0;
+        const y0 = sy | 0;
+        const fx = sx - x0;
+        const fy = sy - y0;
+        const i00 = (y0 * sw + x0) * 4;
+        const i10 = i00 + 4;
+        const i01 = i00 + sw * 4;
+        const i11 = i01 + 4;
+        const r00 = srcData[i00], r10 = srcData[i10], r01 = srcData[i01], r11 = srcData[i11];
+        const rt = r00 + (r10 - r00) * fx;
+        const rb = r01 + (r11 - r01) * fx;
+        dst[di] = rt + (rb - rt) * fy;
+
+        const g00 = srcData[i00 + 1], g10 = srcData[i10 + 1], g01 = srcData[i01 + 1], g11 = srcData[i11 + 1];
+        const gt = g00 + (g10 - g00) * fx;
+        const gb = g01 + (g11 - g01) * fx;
+        dst[di + 1] = gt + (gb - gt) * fy;
+
+        const b00 = srcData[i00 + 2], b10 = srcData[i10 + 2], b01 = srcData[i01 + 2], b11 = srcData[i11 + 2];
+        const bt = b00 + (b10 - b00) * fx;
+        const bb = b01 + (b11 - b01) * fx;
+        dst[di + 2] = bt + (bb - bt) * fy;
+
+        dst[di + 3] = 255;
       }
-      const x0 = Math.floor(sx);
-      const y0 = Math.floor(sy);
-      const fx = sx - x0;
-      const fy = sy - y0;
-      const i00 = (y0 * sw + x0) * 4;
-      const i10 = i00 + 4;
-      const i01 = i00 + sw * 4;
-      const i11 = i01 + 4;
-      for (let c = 0; c < 3; c++) {
-        const v00 = srcData[i00 + c];
-        const v10 = srcData[i10 + c];
-        const v01 = srcData[i01 + c];
-        const v11 = srcData[i11 + c];
-        const top = v00 + (v10 - v00) * fx;
-        const bottom = v01 + (v11 - v01) * fx;
-        dst[di + c] = top + (bottom - top) * fy;
-      }
-      dst[di + 3] = 255;
+      nx += h0;
+      ny += h3;
+      den += h6;
+      di += 4;
     }
   }
   outCtx.putImageData(outImage, 0, 0);
