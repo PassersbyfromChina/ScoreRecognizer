@@ -179,17 +179,20 @@ function pickScoreCluster(
   return best;
 }
 
-/** 本地离线数字识别（懒加载模型；只在题目区域附近裁剪一小块，失败返回 null）。 */
+/**
+ * 本地离线数字识别（懒加载模型；只在题目区域附近裁剪一小块）。
+ * 返回值：undefined = 这一题附近没有像分数的红笔聚类（不是失败）；null = 模型加载/推理失败。
+ */
 async function recognizeLocal(
   canvas: HTMLCanvasElement,
   region: Region,
   longSidePx: number,
   components: RedComponent[],
-): Promise<LocalAnswer | null> {
+): Promise<LocalAnswer | null | undefined> {
   const cluster = pickScoreCluster(components, region, longSidePx);
-  if (!cluster || cluster.length === 0) return null;
+  if (!cluster || cluster.length === 0) return undefined;
   const box = unionBox(cluster);
-  if (!box) return null;
+  if (!box) return undefined;
   const pad = Math.max(box.w, box.h) * 0.35;
   const crop = cropCanvas(canvas, {
     x: box.x - pad,
@@ -398,8 +401,12 @@ export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<P
         continue;
       }
       const local = await recognizeLocal(canvas, region, longSidePx, extraction.components);
-      if (local === null) localModelFailed = true;
-      localByQuestion.set(region.questionNo!, local);
+      if (local === null) {
+        localModelFailed = true;
+        localByQuestion.set(region.questionNo!, null);
+        continue;
+      }
+      localByQuestion.set(region.questionNo!, local ?? null);
     }
     if (localModelFailed) warnings.push("本地数字识别模型加载失败，相关题目请人工确认");
   }

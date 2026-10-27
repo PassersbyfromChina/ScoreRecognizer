@@ -18,6 +18,7 @@ import type { ParsedWorkbook } from "../core/excel/import";
 import { buildImportResult, parseWorkbookFile, suggestNameImport } from "../core/excel/import";
 import { toast } from "../components/Toast";
 import { ConfirmDialog } from "../components/Modal";
+import { isNativeMobile } from "../core/platform";
 
 interface Selection {
   sheetName: string;
@@ -276,7 +277,7 @@ export function StudentsScreen() {
                   }}
                 >
                   <div className="dz-icon">{busy ? <span className="spinner" /> : <Upload size={22} />}</div>
-                  <div className="dz-title">把 Excel 拖到这里，或点击选择文件</div>
+                  <div className="dz-title">{isNativeMobile() ? "点这里选择 Excel / CSV 文件" : "把 Excel 拖到这里，或点击选择文件"}</div>
                   <div className="dz-desc">支持 .xlsx / .xls / .csv；表头写「姓名」「名字」等都能识别</div>
                   <input
                     ref={fileRef}
@@ -325,7 +326,7 @@ export function StudentsScreen() {
                   </div>
                 </div>
 
-                <div className="grid-4" style={{ display: "grid", gridTemplateColumns: "1.2fr .8fr 1.6fr .8fr", gap: 12 }}>
+                <div className="import-grid" style={{ display: "grid", gridTemplateColumns: "1.2fr .8fr 1.6fr .8fr", gap: 12 }}>
                   <div className="field">
                     <label className="label">工作表</label>
                     <select

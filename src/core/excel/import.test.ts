@@ -70,6 +70,18 @@ describe("姓名列自动识别", () => {
     expect(warnings.join("")).toContain("重名");
   });
 
+  it("「姓名/题号」这种带后缀的表头也能识别（导出文件可再导入）", () => {
+    const rows = [
+      ["姓名/题号", "1", "2", "3"],
+      ["张三", "8", "-2", "5"],
+      ["李四", "7", "9", "6"],
+    ];
+    const result = suggestNameImport(wb(rows));
+    expect(result).not.toBeNull();
+    expect(result!.nameColumn).toBe(0);
+    expect(result!.names.map((n) => n.name)).toEqual(["张三", "李四"]);
+  });
+
   it("数字列不会被当成姓名列", () => {
     const rows = [
       ["序号", "姓名"],

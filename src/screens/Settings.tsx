@@ -1,14 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bot,
   Check,
   Database,
+  Download,
   ExternalLink,
   Eye,
   EyeOff,
+  HardDrive,
   Info,
   ShieldCheck,
   Trash2,
+  Upload,
 } from "lucide-react";
 import { useAppStore } from "../core/store";
 import type { MissingMarkMode } from "../core/types";
@@ -16,6 +19,8 @@ import { toast } from "../components/Toast";
 import { ConfirmDialog } from "../components/Modal";
 import { estimateStorage } from "../core/storage/db";
 import { wipeAll } from "../core/storage/repo";
+import { buildBackup, restoreBackup } from "../core/backup";
+import { saveFile } from "../core/platform";
 
 export function SettingsScreen() {
   const settings = useAppStore((s) => s.settings);
@@ -28,6 +33,11 @@ export function SettingsScreen() {
   const [saved, setSaved] = useState(false);
   const [storage, setStorage] = useState<{ usage: number; quota: number }>({ usage: 0, quota: 0 });
   const [confirmWipe, setConfirmWipe] = useState(false);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [restoreBusy, setRestoreBusy] = useState(false);
+  const [restoreFile, setRestoreFile] = useState<File | null>(null);
+  const [lastBackup, setLastBackup] = useState<string | null>(null);
+  const restoreRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setApiKey(settings.apiKey);
@@ -53,6 +63,42 @@ export function SettingsScreen() {
 
   async function setMissingMode(mode: MissingMarkMode) {
     await updateSettings({ missingMarkMode: mode });
+  }
+
+  async function handleBackup() {
+    setBackupBusy(true);
+    try {
+      const { filename, blob, summary } = await buildBackup();
+      const result = await saveFile(blob, filename);
+      if (!result.ok) throw new Error(result.message ?? "保存失败");
+      setLastBackup(
+        `${new Date().toLocaleString("zh-CN")} · ${formatBytes(summary.bytes)} · ${summary.projects} 个班级 / ${summary.captures} 张答题卡`,
+      );
+      toast("完整备份已导出", "ok");
+    } catch (e) {
+      console.error(e);
+      toast(`备份失败：${e instanceof Error ? e.message : String(e)}`, "err");
+    } finally {
+      setBackupBusy(false);
+    }
+  }
+
+  async function doRestore(file: File) {
+    setRestoreFile(null);
+    setRestoreBusy(true);
+    try {
+      const result = await restoreBackup(file);
+      toast(
+        `已恢复 ${result.projects} 个班级、${result.captures} 张答题卡${result.warnings.length ? `（${result.warnings.length} 张图片恢复失败）` : ""}`,
+        "ok",
+      );
+      window.setTimeout(() => window.location.reload(), 900);
+    } catch (e) {
+      console.error(e);
+      toast(`恢复失败：${e instanceof Error ? e.message : String(e)}`, "err");
+    } finally {
+      setRestoreBusy(false);
+    }
   }
 
   const keyPreview = settings.apiKey ? `${settings.apiKey.slice(0, 5)}…${settings.apiKey.slice(-4)}` : "未填写";
@@ -187,6 +233,52 @@ export function SettingsScreen() {
 
       <div className="card" style={{ marginBottom: 16 }}>
         <div className="card-head">
+          <HardDrive size={17} color="var(--red)" />
+          <h2>完整备份</h2>
+        </div>
+        <div className="card-body">
+          <div className="row wrap" style={{ justifyContent: "space-between", gap: 14, alignItems: "flex-start" }}>
+            <div style={{ maxWidth: 500 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>换电脑或重装前，先导出一份完整备份</div>
+              <div className="faint small" style={{ lineHeight: 1.7 }}>
+                备份文件包含：班级与名单、答题卡模板、全部答题卡图片、识别结果、导出记录。
+                <br />
+                恢复时会在本机覆盖当前数据；建议先把当前数据也导出一份。
+              </div>
+            </div>
+            <div className="row" style={{ gap: 8 }}>
+              <button className="btn btn-secondary" onClick={() => void handleBackup()} disabled={backupBusy || restoreBusy}>
+                {backupBusy ? <span className="spinner" /> : <Download size={15} />}
+                导出备份
+              </button>
+              <button className="btn btn-secondary" onClick={() => restoreRef.current?.click()} disabled={backupBusy || restoreBusy}>
+                {restoreBusy ? <span className="spinner" /> : <Upload size={15} />}
+                恢复备份
+              </button>
+              <input
+                ref={restoreRef}
+                type="file"
+                accept=".json,application/json"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) setRestoreFile(f);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+          </div>
+          {lastBackup && (
+            <div className="notice notice-success" style={{ marginTop: 12 }}>
+              <Check size={15} />
+              <div>上次导出：{lastBackup}</div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-head">
           <Database size={17} color="var(--red)" />
           <h2>本地数据</h2>
         </div>
@@ -242,6 +334,22 @@ export function SettingsScreen() {
           </div>
         </div>
       </div>
+
+      {restoreFile && (
+        <ConfirmDialog
+          title="恢复完整备份"
+          message={
+            <>
+              将用备份文件 <b>{restoreFile.name}</b>（{formatBytes(restoreFile.size)}）覆盖这台设备上现有的全部数据：
+              班级、名单、模板、答题卡图片和识别结果都会被替换，确定继续吗？
+            </>
+          }
+          confirmText="覆盖并恢复"
+          danger
+          onCancel={() => setRestoreFile(null)}
+          onConfirm={() => void doRestore(restoreFile)}
+        />
+      )}
 
       {confirmWipe && (
         <ConfirmDialog

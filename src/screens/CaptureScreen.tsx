@@ -23,6 +23,7 @@ import { processCapture } from "../core/recognition/engine";
 import { toast } from "../components/Toast";
 import { ConfirmDialog } from "../components/Modal";
 import { PhoneLinkModal } from "../components/PhoneLinkModal";
+import { isNativeMobile } from "../core/platform";
 
 const STATUS_META: Record<
   Capture["status"],
@@ -283,7 +284,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
               }}
             >
               <div className="dz-icon">{uploading ? <span className="spinner" /> : <ImagePlus size={22} />}</div>
-              <div className="dz-title">把答题卡图片拖到这里，或点击选择</div>
+              <div className="dz-title">{isNativeMobile() ? "点这里拍照或选择答题卡图片" : "把答题卡图片拖到这里，或点击选择"}</div>
               <div className="dz-desc">支持一次选多张；手机与电脑连同一 Wi-Fi 后，点右上「手机拍摄」扫码，手机拍了自动传回电脑</div>
             </div>
             <div className="notice notice-info" style={{ marginTop: 16 }}>

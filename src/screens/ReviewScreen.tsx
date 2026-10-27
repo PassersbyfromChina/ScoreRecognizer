@@ -834,8 +834,14 @@ export function ReviewScreen({ onNavigate }: NavProps) {
         <div className="titles">
           <h1>核对答题卡</h1>
           <div className="desc">
-            确认每道题的分数与姓名，修改会立即保存。用 <span className="kbd">Tab</span> / <span className="kbd">↑↓</span>{" "}
-            切题，<span className="kbd">Enter</span> 通过，<span className="kbd">Backspace</span> 修改。
+            确认每道题的分数与姓名，修改会立即保存。
+            <span className="rv-kbd-hint">
+              用 <span className="kbd">Tab</span> / <span className="kbd">↑↓</span> 切题，
+              <span className="kbd">Enter</span> 通过，<span className="kbd">Backspace</span> 修改。
+            </span>
+            <span className="rv-touch-hint" style={{ display: "none" }}>
+              点数字即可修改；改完按「继续」通过。
+            </span>
           </div>
         </div>
         <div className="actions">

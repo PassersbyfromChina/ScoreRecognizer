@@ -326,7 +326,7 @@ export function TemplateScreen({ onNavigate }: NavProps) {
             <div className="dropzone" onClick={() => fileRef.current?.click()}>
               <div className="dz-icon">{busy ? <span className="spinner" /> : <Camera size={22} />}</div>
               <div className="dz-title">{busy ?? "选择一张答题卡照片作为样张"}</div>
-              <div className="dz-desc">支持拍照上传或从电脑选择；会自动识别边缘、矫正倾斜与透视</div>
+              <div className="dz-desc">支持拍照或从相册选择；会自动识别边缘、矫正倾斜与透视</div>
               <input
                 ref={fileRef}
                 type="file"
@@ -384,7 +384,7 @@ export function TemplateScreen({ onNavigate }: NavProps) {
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 330px", gap: 16, alignItems: "start" }}>
+      <div className="tpl-layout" style={{ display: "grid", gridTemplateColumns: "1fr 330px", gap: 16, alignItems: "start" }}>
         <div className="card" style={{ overflow: "hidden" }}>
           <div className="card-head" style={{ padding: "10px 14px" }}>
             <div className="row" style={{ gap: 6 }}>

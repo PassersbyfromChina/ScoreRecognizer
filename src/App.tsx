@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Camera,
   CheckSquare,
@@ -9,6 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAppStore, batchCounts } from "./core/store";
+import { isNativeMobile } from "./core/platform";
 import type { Screen } from "./navigation";
 import { Onboarding } from "./screens/Onboarding";
 import { HomeScreen } from "./screens/Home";
@@ -39,6 +40,46 @@ export default function App() {
   const captures = useAppStore((s) => s.captures);
   const [screen, setScreen] = useState<Screen>("home");
   const [inited, setInited] = useState(false);
+  const screenRef = useRef<Screen>(screen);
+  screenRef.current = screen;
+
+  // 切页面时把内容区滚回顶部（手机上避免停在上一页的滚动位置）
+  useEffect(() => {
+    const el = document.querySelector<HTMLElement>(".page");
+    if (el) el.scrollTop = 0;
+  }, [screen]);
+
+  // Android 返回键：优先关弹窗，其次回首页，再次最小化应用
+  useEffect(() => {
+    if (!isNativeMobile()) return;
+    let disposed = false;
+    let remove: (() => void) | undefined;
+    void (async () => {
+      try {
+        const { App: CapApp } = await import("@capacitor/app");
+        const handle = await CapApp.addListener("backButton", () => {
+          const mask = document.querySelector<HTMLElement>(".modal-mask");
+          if (mask) {
+            mask.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+            return;
+          }
+          if (screenRef.current !== "home") {
+            setScreen("home");
+            return;
+          }
+          void CapApp.minimizeApp();
+        });
+        if (disposed) void handle.remove();
+        else remove = () => void handle.remove();
+      } catch (e) {
+        console.warn("返回键监听失败", e);
+      }
+    })();
+    return () => {
+      disposed = true;
+      remove?.();
+    };
+  }, []);
 
   useEffect(() => {
     if (inited) return;

@@ -1,7 +1,7 @@
 import * as XLSX from "xlsx";
 import type { NameImportResult } from "../types";
 
-const HEADER_RE = /^(姓名|名字|学生姓名|学生名字|学生|name|student|fullname)$/i;
+const HEADER_RE = /^(姓名|名字|学生姓名|学生名字|学生|name|student|fullname)([\s/／|｜、:：-].*)?$/i;
 const NAME_LIKE_RE = /^[\u4e00-\u9fa5·•\s]{2,6}$/;
 
 export interface ParsedSheet {

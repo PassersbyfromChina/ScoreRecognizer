@@ -1,5 +1,26 @@
 /* 手机 / 平板 / Android 适配 */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 @media (max-width: 860px) {
+  /* 首次引导：按钮换行、卡片不挤压 */
+  .onboard { padding: 14px 12px; align-items: flex-start; }
+  .onboard-card { grid-template-columns: 1fr; }
+  .onboard-main { padding: 24px 18px; min-width: 0; }
+  .onboard-main h2 { font-size: 20px; }
+  .onboard-actions { flex-wrap: wrap; }
+  .onboard-actions .btn { flex: 1 1 auto; min-width: 0; }
+  .onboard-main .lede { font-size: 13.5px; }
+
+  /* 名单导入表单：窄屏两列 */
+  .import-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* 手机上隐藏键盘快捷键提示，显示触屏说明 */
+  .rv-kbd-hint { display: none !important; }
+  .rv-touch-hint { display: inline !important; }
+
   .app-shell { flex-direction: column; }
   .sidebar {
     width: 100%;
@@ -40,14 +61,16 @@
     min-height: 50px;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 8px 12px;
+    padding: 8px 12px 6px;
   }
+  .topbar .btn-icon { display: none; }
   .project-pill { font-size: 12.5px; }
   .status-chips {
     width: 100%;
     overflow-x: auto;
     justify-content: flex-start;
     padding-bottom: 2px;
+    margin-top: -2px;
     scrollbar-width: none;
   }
   .status-chips::-webkit-scrollbar { display: none; }
@@ -78,13 +101,25 @@
   .badge { white-space: nowrap; }
   .cap-issue-col { display: none; }
   .thumb { width: 38px !important; height: 48px !important; }
+  /* 卡片头在窄屏允许换行，避免标题被输入框挤成竖排 */
+  .card-head { flex-wrap: wrap; row-gap: 8px; }
+  .card-head h2, .card-head h3 { white-space: nowrap; }
+  .card-head .spacer { display: none; }
+  .card-head .row { flex: 1 1 100%; }
+  .card-head .row .input { flex: 1; width: auto; min-width: 0; }
   .btn { height: 36px; }
   .btn-lg { height: 44px; }
   .rv-layout, .ex-layout { grid-template-columns: 1fr !important; }
+  .tpl-layout { grid-template-columns: 1fr !important; }
 }
 
 @media (max-width: 640px) {
   .project-pill { max-width: 45%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .status-chips .chip { font-size: 10.5px; }
   .hero-card h2 { font-size: 17px; }
+}
+
+@media (max-width: 380px) {
+  .nav-item { font-size: 9px; padding: 5px 6px; }
+  .nav-item svg { width: 16px; height: 16px; }
 }
