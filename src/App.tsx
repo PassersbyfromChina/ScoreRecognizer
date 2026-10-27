@@ -8,14 +8,16 @@ import {
   Settings,
   Users,
 } from "lucide-react";
-import { useAppStore, captureCounts } from "./core/store";
+import { useAppStore, batchCounts } from "./core/store";
 import type { Screen } from "./navigation";
 import { Onboarding } from "./screens/Onboarding";
 import { HomeScreen } from "./screens/Home";
 import { StudentsScreen } from "./screens/Students";
 import { SettingsScreen } from "./screens/Settings";
-import { CaptureScreen, ExportScreen, ReviewScreen } from "./screens/Placeholders";
+import { ExportScreen } from "./screens/ExportScreen";
+import { ReviewScreen } from "./screens/ReviewScreen";
 import { TemplateScreen } from "./screens/TemplateScreen";
+import { CaptureScreen } from "./screens/CaptureScreen";
 import { Toaster } from "./components/Toast";
 
 const ALL_SCREENS: Screen[] = ["home", "students", "template", "capture", "review", "export", "settings"];
@@ -50,6 +52,12 @@ export default function App() {
         await dev.maybeSeedForDev();
       }
       await init();
+      // 请求持久化存储，降低浏览器/系统清理本地数据的概率
+      try {
+        await navigator.storage?.persist?.();
+      } catch {
+        /* ignore */
+      }
     })();
   }, [init, inited]);
 
@@ -73,7 +81,7 @@ export default function App() {
     );
   }
 
-  const counts = captureCounts(captures);
+  const counts = batchCounts(project, captures);
   const badges: Partial<Record<Screen, number>> = {
     capture: counts.pending_capture + counts.pending_process,
     review: counts.pending_review,
@@ -114,7 +122,7 @@ export default function App() {
           </button>
         </nav>
         <div className="sidebar-footer">
-          <div className="ver">v0.1.0 · 本地保存</div>
+          <div className="ver">v{__APP_VERSION__} · 本地保存</div>
           <a href="https://github.com/PassersbyfromChina/ScoreRecognizer" target="_blank" rel="noreferrer">
             GitHub 项目页
           </a>

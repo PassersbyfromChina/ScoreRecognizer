@@ -169,3 +169,11 @@ export function captureCounts(captures: Capture[]) {
   for (const c of captures) counts[c.status] += 1;
   return counts;
 }
+
+/** 顶部状态栏用的统计：待拍摄 = 名单里还没有答题卡的学生数。 */
+export function batchCounts(project: Project | null, captures: Capture[]) {
+  const counts = captureCounts(captures);
+  const students = project?.students.length ?? 0;
+  counts.pending_capture = Math.max(0, students - captures.length);
+  return counts;
+}

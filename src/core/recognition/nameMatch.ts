@@ -1,0 +1,57 @@
+import type { Student } from "../types";
+
+export function normalizeName(value: string): string {
+  return value.replace(/\s+/g, "").replace(/[·•・.]/g, "").trim();
+}
+
+export function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  let prev = new Array(n + 1).fill(0).map((_, i) => i);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + cost);
+    }
+    prev = cur;
+  }
+  return prev[n];
+}
+
+export interface NameMatch {
+  studentId?: string;
+  name: string;
+  confidence: number;
+  candidates: Array<{ studentId: string; name: string; distance: number; score: number }>;
+}
+
+/** 把识别出的姓名模糊匹配到班级名单（手写识别常见近字/漏字）。 */
+export function matchStudent(rawName: string | null | undefined, students: Student[]): NameMatch {
+  const name = normalizeName(rawName ?? "");
+  if (!name) return { name: "", confidence: 0, candidates: [] };
+  const scored = students.map((s) => {
+    const target = normalizeName(s.name);
+    if (target === name) return { studentId: s.id, name: s.name, distance: 0, score: 1 };
+    const d = levenshtein(name, target);
+    let score = 0;
+    if (d === 1) score = 0.78;
+    else if (d === 2 && name.length >= 3) score = 0.55;
+    else if (d === 2) score = 0.45;
+    // 识别结果包含在名单里（多字/少字）也给一点分
+    if (d > 0 && (target.includes(name) || name.includes(target)) && Math.abs(target.length - name.length) <= 1) {
+      score = Math.max(score, 0.5);
+    }
+    return { studentId: s.id, name: s.name, distance: d, score };
+  });
+  scored.sort((a, b) => b.score - a.score || a.distance - b.distance);
+  const best = scored[0];
+  const second = scored[1];
+  const margin = best && second ? best.score - second.score : best?.score ?? 0;
+  if (!best || best.score < 0.45) return { name, confidence: 0, candidates: scored.slice(0, 3) };
+  // 两个候选分数很接近时降低置信度，交给人工确认
+  const confidence = margin < 0.08 ? Math.min(best.score, 0.5) : best.score;
+  return { name, confidence, studentId: confidence >= 0.7 ? best.studentId : undefined, candidates: scored.slice(0, 3) };
+}

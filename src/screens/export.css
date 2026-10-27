@@ -1,0 +1,186 @@
+/* ================================================================
+   导出界面（ExportScreen）样式
+   仅使用 ex- 前缀，复用 styles.css 里的基础类与 CSS 变量。
+   ================================================================ */
+
+.ex-page { max-width: 1320px; }
+
+.ex-title-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ex-title-row h1 { font-size: 23px; }
+.ex-title-row .badge { margin-top: 2px; }
+
+.ex-notice { margin-bottom: 16px; }
+.ex-notice-sub { margin-top: 5px; opacity: 0.92; }
+
+/* ---------------------------------------------------------------- 摘要 */
+.ex-summary { padding: 18px 20px; margin-bottom: 16px; }
+
+.ex-progress-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.ex-progress-label { font-size: 13px; font-weight: 650; color: var(--ink-2); }
+.ex-progress-pct {
+  font-size: 22px; font-weight: 800; letter-spacing: -0.03em; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ex-progress-spacer { flex: 1; }
+
+.ex-bar { height: 8px; margin-top: 11px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
+.ex-bar > span {
+  display: block; height: 100%; border-radius: inherit;
+  background: linear-gradient(90deg, #fb7185, #e11d48);
+  transition: width 0.35s ease;
+}
+.ex-bar.complete > span { background: linear-gradient(90deg, #34d399, #0f9d58); }
+
+.ex-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;
+  margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line);
+}
+.ex-stat {
+  min-width: 0; padding: 12px 14px;
+  background: #fbfcfe; border: 1px solid var(--line); border-radius: 11px;
+}
+.ex-stat-num {
+  font-size: 27px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05;
+  color: var(--ink); font-variant-numeric: tabular-nums;
+}
+.ex-stat-label { margin-top: 7px; font-size: 12.5px; font-weight: 650; color: var(--ink-2); }
+.ex-stat-hint {
+  margin-top: 3px; font-size: 11.5px; color: var(--faint);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ex-stat.ok .ex-stat-num { color: var(--green); }
+.ex-stat.warn .ex-stat-num { color: var(--amber); }
+.ex-stat.danger .ex-stat-num { color: var(--red); }
+.ex-stat.muted .ex-stat-num { color: var(--muted); }
+
+/* ---------------------------------------------------------------- 预览表 */
+.ex-preview { margin-bottom: 16px; overflow: hidden; }
+
+.ex-legend {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11.5px; color: var(--muted); white-space: nowrap;
+}
+.ex-legend i {
+  font-style: normal; display: inline-grid; place-items: center;
+  min-width: 20px; height: 20px; padding: 0 5px;
+  border-radius: 6px; border: 1px solid var(--red-line);
+  background: var(--red-soft); color: var(--red);
+  font-size: 12px; font-weight: 750; line-height: 1;
+}
+.ex-legend-neg i { background: #fff; color: var(--red-2); }
+
+.ex-table-wrap {
+  max-height: 430px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+table.ex-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+table.ex-table th,
+table.ex-table td {
+  height: 38px;
+  padding: 0 10px;
+  text-align: center;
+  white-space: nowrap;
+  border-bottom: 1px solid #eef2f7;
+}
+table.ex-table thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: #f8fafc;
+  color: var(--muted);
+  font-size: 12px; font-weight: 700; letter-spacing: 0.01em;
+  border-bottom: 1px solid var(--line-strong);
+}
+table.ex-table tbody td { background: #fff; color: var(--ink); }
+table.ex-table tbody tr:hover td { background: #fafbfd; }
+
+/* 首列（姓名）横向固定 */
+table.ex-table th.ex-name,
+table.ex-table td.ex-name {
+  position: sticky; left: 0; z-index: 1;
+  min-width: 172px; max-width: 230px;
+  text-align: left;
+  border-right: 1px solid var(--line);
+}
+table.ex-table thead th.ex-name { z-index: 3; background: #f8fafc; }
+table.ex-table tbody tr:hover td.ex-name { background: #fafbfd; }
+
+.ex-name-inner { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.ex-name-ok { flex: none; color: var(--green); }
+.ex-stu-name { overflow: hidden; text-overflow: ellipsis; }
+.ex-mini-badge { flex: none; font-size: 10.5px; padding: 2px 6px; }
+
+table.ex-table th.ex-q { min-width: 56px; }
+table.ex-table td.ex-score { color: var(--ink-2); }
+
+table.ex-table tbody td.ex-neg { color: var(--red-2); font-weight: 700; }
+table.ex-table tbody td.ex-cell-mark {
+  background: var(--red-soft);
+  color: var(--red);
+  font-weight: 750;
+}
+table.ex-table tbody tr:hover td.ex-cell-mark { background: #ffe9ee; }
+table.ex-table tbody td.ex-cell-blank { color: #cbd5e1; }
+
+table.ex-table td.ex-total {
+  border-left: 1px solid var(--line);
+  background: #fcfdff;
+  font-weight: 750;
+}
+table.ex-table tbody tr:hover td.ex-total { background: #f7f9fd; }
+table.ex-table tbody td.ex-total-empty { color: var(--faint); font-weight: 650; }
+
+.ex-preview-foot {
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: #fcfdff;
+}
+
+/* ---------------------------------------------------------------- 导出备份 */
+.ex-history { margin-bottom: 8px; overflow: hidden; }
+.ex-history-list { display: flex; flex-direction: column; }
+.ex-history-item {
+  display: flex; align-items: center; gap: 13px;
+  padding: 13px 20px;
+  border-bottom: 1px solid #f1f4f8;
+}
+.ex-history-item:last-child { border-bottom: 0; }
+.ex-history-item:hover { background: #fafbfd; }
+
+.ex-file-icon {
+  width: 38px; height: 38px; flex: none;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: var(--green-soft); color: #047857;
+}
+.ex-file-info { flex: 1; min-width: 0; }
+.ex-file-name {
+  font-size: 13px; font-weight: 650;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.ex-file-meta {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  margin-top: 3px; font-size: 11.5px; color: var(--faint);
+}
+.ex-dot-sep { color: #cbd5e1; }
+.ex-file-missing { color: var(--amber); }
+
+.ex-history-loading {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 30px 20px; color: var(--muted); font-size: 13px;
+}
+
+/* ---------------------------------------------------------------- 窄屏兜底 */
+@media (max-width: 900px) {
+  .ex-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ex-preview .card-head { flex-wrap: wrap; }
+  .ex-preview-foot { flex-direction: column; align-items: flex-start; }
+}

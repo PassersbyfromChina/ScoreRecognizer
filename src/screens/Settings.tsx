@@ -214,7 +214,7 @@ export function SettingsScreen() {
             <div>
               <div style={{ fontWeight: 700 }}>ScoreRecognizer · 红分识别</div>
               <div className="faint small" style={{ marginTop: 4 }}>
-                版本 0.1.0 · 数据保存在本机 · 仅供个人使用
+                版本 {__APP_VERSION__} · 数据保存在本机 · 仅供个人使用
               </div>
             </div>
             <div className="row" style={{ gap: 8 }}>

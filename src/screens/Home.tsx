@@ -11,7 +11,7 @@ import {
   ScanLine,
   Users,
 } from "lucide-react";
-import { useAppStore, captureCounts } from "../core/store";
+import { useAppStore, batchCounts } from "../core/store";
 import type { NavProps } from "../navigation";
 import { toast } from "../components/Toast";
 
@@ -23,7 +23,7 @@ export function HomeScreen({ onNavigate }: NavProps) {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const counts = useMemo(() => captureCounts(captures), [captures]);
+  const counts = useMemo(() => batchCounts(project, captures), [project, captures]);
   const studentCount = project?.students.length ?? 0;
   const recent = useMemo(() => [...captures].sort((a, b) => b.createdAt - a.createdAt).slice(0, 6), [captures]);
 

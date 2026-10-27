@@ -12,8 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "preview": "vite preview",
-    "package:win": "npm run build && electron-builder --win --x64",
-    "package:win-arm64": "npm run build && electron-builder --win --arm64"
+    "package:win": "node scripts/package.mjs --x64",
+    "package:win-arm64": "node scripts/package.mjs --arm64"
   },
   "dependencies": {
     "exceljs": "^4.4.0",
@@ -37,23 +37,42 @@
   "build": {
     "appId": "com.passersby.scorerecognizer",
     "productName": "ScoreRecognizer",
+    "copyright": "Copyright © 2026 ScoreRecognizer",
     "directories": {
-      "output": "release"
+      "output": "release",
+      "buildResources": "resources"
     },
     "files": [
       "dist/**/*",
       "electron/**/*",
       "package.json"
     ],
+    "asar": false,
     "win": {
+      "icon": "resources/icon.ico",
+      "signAndEditExecutable": false,
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
       "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        }
+        "nsis",
+        "zip"
       ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "ScoreRecognizer",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico",
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
     }
+  },
+  "author": {
+    "name": "PassersbyfromChina"
   }
 }
