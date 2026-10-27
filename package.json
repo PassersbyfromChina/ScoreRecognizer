@@ -1,0 +1,59 @@
+{
+  "name": "score-recognizer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ScoreRecognizer · 红分识别 — 拍照识别答题卡红色笔迹分数与手写姓名",
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "electron": "node scripts/start-electron.mjs",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "preview": "vite preview",
+    "package:win": "npm run build && electron-builder --win --x64",
+    "package:win-arm64": "npm run build && electron-builder --win --arm64"
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vitest": "^2.1.8"
+  },
+  "build": {
+    "appId": "com.passersby.scorerecognizer",
+    "productName": "ScoreRecognizer",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
+  }
+}

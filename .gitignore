@@ -13,6 +13,8 @@ dist-electron/
 build/
 out/
 release/
+.vite/
+coverage/
 *.log
 *.tmp
 *.zip
