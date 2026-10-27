@@ -20,6 +20,7 @@ html {
   /* 手机上隐藏键盘快捷键提示，显示触屏说明 */
   .rv-kbd-hint { display: none !important; }
   .rv-touch-hint { display: inline !important; }
+  .rv-kb-hints { display: none !important; }
 
   .app-shell { flex-direction: column; }
   .sidebar {

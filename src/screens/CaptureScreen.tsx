@@ -285,7 +285,11 @@ export function CaptureScreen({ onNavigate }: NavProps) {
             >
               <div className="dz-icon">{uploading ? <span className="spinner" /> : <ImagePlus size={22} />}</div>
               <div className="dz-title">{isNativeMobile() ? "点这里拍照或选择答题卡图片" : "把答题卡图片拖到这里，或点击选择"}</div>
-              <div className="dz-desc">支持一次选多张；手机与电脑连同一 Wi-Fi 后，点右上「手机拍摄」扫码，手机拍了自动传回电脑</div>
+              <div className="dz-desc">
+                {isNativeMobile()
+                  ? "支持一次选多张；也可以用摄像头逐张拍摄，图片会实时保存"
+                  : "支持一次选多张；手机与电脑连同一 Wi-Fi 后，点右上「手机拍摄」扫码，手机拍了自动传回电脑"}
+              </div>
             </div>
             <div className="notice notice-info" style={{ marginTop: 16 }}>
               <AlertTriangle size={15} />

@@ -253,7 +253,7 @@ export function StudentsScreen() {
           <div className="card-head">
             <h2>导入姓名 Excel</h2>
             <span className="spacer" />
-            <button className="btn btn-ghost btn-sm" onClick={() => setImportOpen(false)}>
+            <button className="btn btn-ghost btn-sm" data-back-close onClick={() => setImportOpen(false)}>
               <X size={14} />
               取消
             </button>

@@ -63,6 +63,12 @@ export default function App() {
             mask.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
             return;
           }
+          // 内联面板（如名单导入）优先关闭，避免返回键直接跳回首页
+          const closeable = document.querySelector<HTMLElement>("[data-back-close]");
+          if (closeable) {
+            closeable.click();
+            return;
+          }
           if (screenRef.current !== "home") {
             setScreen("home");
             return;
