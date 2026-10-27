@@ -9,6 +9,7 @@ import {
   EyeOff,
   HardDrive,
   Info,
+  ListChecks,
   ShieldCheck,
   Trash2,
   Upload,
@@ -227,6 +228,33 @@ export function SettingsScreen() {
             <div className="hint">
               不管选哪种，应用里都会保留每张答题卡的原始记录，导出的只是当前快照。
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <div className="card-head">
+          <ListChecks size={17} color="var(--red)" />
+          <h2>离线姓名建议</h2>
+        </div>
+        <div className="card-body">
+          <div className="row wrap" style={{ justifyContent: "space-between", gap: 12 }}>
+            <div style={{ maxWidth: 540 }}>
+              <div style={{ fontWeight: 600, marginBottom: 4 }}>按名单顺序自动填姓名（仍需逐张确认）</div>
+              <div className="faint small" style={{ lineHeight: 1.7 }}>
+                没有 AI Key 或 AI 识别不了姓名时，按拍照顺序从班级名单里依次填入姓名。
+                每张答题卡仍会在核对页标为「待确认」，需要你点一下确认；确认前不会算作某个学生的成绩。
+              </div>
+            </div>
+            <label className="switch">
+              <input
+                type="checkbox"
+                checked={settings.autoNameByOrder}
+                onChange={(e) => void updateSettings({ autoNameByOrder: e.target.checked })}
+              />
+              <span className="track" />
+              <span className="small muted">{settings.autoNameByOrder ? "已开启" : "关闭"}</span>
+            </label>
           </div>
         </div>
       </div>

@@ -9,6 +9,8 @@ export interface ProcessContext {
   settings: AppSettings;
   template: CardTemplate;
   students: Student[];
+  /** 离线按名单顺序给出的姓名建议（仍标记为待确认，不自动认领） */
+  nameHint?: { studentId?: string; name: string } | null;
   onProgress?: (stage: string) => void;
 }
 
@@ -338,7 +340,7 @@ function evaluateAnswer(
 
 /** 处理一张答题卡：矫正 → 本地红笔分析 → 裁剪 → AI 识别 → 生成待确认记录。 */
 export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<ProcessedCapture> {
-  const { settings, template, students, onProgress } = ctx;
+  const { settings, template, students, nameHint, onProgress } = ctx;
   const warnings: string[] = [];
 
   onProgress?.("正在识别答题卡边缘…");
@@ -438,6 +440,10 @@ export async function processCapture(blob: Blob, ctx: ProcessContext): Promise<P
       const top = match.candidates[0];
       if (top && top.score >= 0.5) nameText = `${aiName}（可能是 ${top.name}）`;
     }
+  } else if (nameHint?.name) {
+    // 没有 AI 姓名结果：给出「按名单顺序」的建议姓名，仍要求人工确认
+    nameText = nameHint.name;
+    nameState = "low_confidence";
   } else if (nameRegion) {
     nameState = nameComponents.length > 0 ? "unreviewed" : "unreviewed";
   }

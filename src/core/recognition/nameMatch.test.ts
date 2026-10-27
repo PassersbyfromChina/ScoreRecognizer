@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { levenshtein, matchStudent, normalizeName } from "./nameMatch";
+import { cleanNameText, levenshtein, matchStudent, normalizeName, pickNextStudent } from "./nameMatch";
 import type { Student } from "../types";
 
 const student = (id: string, name: string): Student => ({ id, name, order: 0 });
@@ -42,5 +42,35 @@ describe("nameMatch", () => {
   it("levenshtein 距离", () => {
     expect(levenshtein("张三", "张三")).toBe(0);
     expect(levenshtein("张三", "张山")).toBe(1);
+  });
+});
+
+describe("离线按名单顺序建议姓名", () => {
+  const ORDERED: Student[] = [
+    { id: "a", name: "陈晓", order: 2 },
+    { id: "b", name: "李然", order: 0 },
+    { id: "c", name: "王雨", order: 1 },
+  ];
+
+  it("按名单 order 顺序给出第一个还没用过的学生", () => {
+    expect(pickNextStudent(ORDERED, [])?.id).toBe("b");
+    expect(pickNextStudent(ORDERED, [{ studentId: "b" }])?.id).toBe("c");
+    expect(pickNextStudent(ORDERED, [{ studentId: "b" }, { studentId: "c" }])?.id).toBe("a");
+    expect(pickNextStudent(ORDERED, [{ studentId: "b" }, { studentId: "c" }, { studentId: "a" }])).toBeNull();
+  });
+
+  it("已确认的姓名（即使还没 studentId）也会跳过", () => {
+    const next = pickNextStudent(ORDERED, [{ nameText: "陈晓" }]);
+    expect(next?.id).toBe("b");
+  });
+
+  it("姓名文本里的候选提示不影响判断", () => {
+    expect(cleanNameText("李然（可能是 李燃）")).toBe("李然");
+    const next = pickNextStudent(ORDERED, [{ nameText: "李然（可能是 李燃）" }]);
+    expect(next?.id).toBe("c");
+  });
+
+  it("名单为空时返回 null", () => {
+    expect(pickNextStudent([], [{ studentId: "a" }])).toBeNull();
   });
 });

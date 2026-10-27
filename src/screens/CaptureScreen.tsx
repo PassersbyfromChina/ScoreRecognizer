@@ -20,6 +20,7 @@ import { useAppStore } from "../core/store";
 import type { Capture } from "../core/types";
 import { deleteCapture, getImageBlob, getImageUrl, listCaptures, putImage, saveCapture } from "../core/storage/repo";
 import { processCapture } from "../core/recognition/engine";
+import { pickNextStudent } from "../core/recognition/nameMatch";
 import { toast } from "../components/Toast";
 import { ConfirmDialog } from "../components/Modal";
 import { PhoneLinkModal } from "../components/PhoneLinkModal";
@@ -130,6 +131,15 @@ export function CaptureScreen({ onNavigate }: NavProps) {
         if (!next) break;
         setProcessingId(next.id);
         const startedAt = performance.now();
+        // 离线按名单顺序给姓名建议（仅当用户开启；仍会标记为待确认）
+        let nameHint: { studentId: string; name: string } | null = null;
+        if (state.settings.autoNameByOrder) {
+          const others = list.filter(
+            (c) => c.id !== next.id && (c.status === "pending_review" || c.status === "done"),
+          );
+          const candidate = pickNextStudent(project.students, others);
+          if (candidate) nameHint = { studentId: candidate.id, name: candidate.name };
+        }
         try {
           const blob = next.imageKey ? await getImageBlob(next.imageKey) : undefined;
           if (!blob) throw new Error("原始图片不见了");
@@ -137,6 +147,7 @@ export function CaptureScreen({ onNavigate }: NavProps) {
             settings: state.settings,
             template,
             students: project.students,
+            nameHint,
           });
           const correctedKey = await putImage(result.correctedBlob);
           const updated: Capture = {

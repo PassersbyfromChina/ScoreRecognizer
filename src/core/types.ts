@@ -30,6 +30,8 @@ export interface AppSettings {
   missingMarkCustom: string;
   /** 自动识别失败时是否自动尝试本地识别 */
   localFirst: boolean;
+  /** 离线时按班级名单顺序自动填姓名（仍需人工确认，避免每张都手动选） */
+  autoNameByOrder: boolean;
   theme: "light";
 }
 
@@ -43,6 +45,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   missingMarkMode: "question",
   missingMarkCustom: "?",
   localFirst: true,
+  autoNameByOrder: false,
   theme: "light",
 };
 

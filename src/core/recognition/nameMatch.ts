@@ -1,4 +1,4 @@
-import type { Student } from "../types";
+import type { Capture, Student } from "../types";
 
 export function normalizeName(value: string): string {
   return value.replace(/\s+/g, "").replace(/[·•・.]/g, "").trim();
@@ -56,4 +56,35 @@ export function matchStudent(rawName: string | null | undefined, students: Stude
   // 两个候选分数很接近时降低置信度，交给人工确认
   const confidence = margin < 0.08 ? Math.min(best.score, 0.5) : best.score;
   return { name, confidence, studentId: confidence >= 0.7 ? best.studentId : undefined, candidates: scored.slice(0, 3) };
+}
+
+/** 去掉「（可能是 X）」这类候选提示，只留识别/建议的姓名。 */
+export function cleanNameText(nameText: string | undefined | null): string {
+  if (!nameText) return "";
+  return normalizeName(nameText.split(/[（(]/)[0]);
+}
+
+/**
+ * 离线按名单顺序建议下一个学生姓名（用于「按拍照顺序自动填姓名」）。
+ * 已被占用的学生（已有 studentId 或已有确认姓名）会跳过；顺序按名单里的 order。
+ */
+export function pickNextStudent(
+  students: Student[],
+  captures: Array<Pick<Capture, "studentId" | "nameText">>,
+): Student | null {
+  if (students.length === 0) return null;
+  const usedIds = new Set<string>();
+  const usedNames = new Set<string>();
+  for (const c of captures) {
+    if (c.studentId) usedIds.add(c.studentId);
+    const name = cleanNameText(c.nameText);
+    if (name) usedNames.add(name);
+  }
+  const ordered = [...students].sort((a, b) => a.order - b.order);
+  for (const s of ordered) {
+    if (usedIds.has(s.id)) continue;
+    if (usedNames.has(normalizeName(s.name))) continue;
+    return s;
+  }
+  return null;
 }
