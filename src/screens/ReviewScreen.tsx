@@ -601,6 +601,17 @@ export function ReviewScreen({ onNavigate }: NavProps) {
     }));
     setNotice(null);
     toast(`已按识别值通过 ${count} 道正常题，其余仍需人工确认`, "ok");
+    // 自动定位到第一处还需要人工处理的地方，减少来回找
+    const remaining = base.answers
+      .filter((a) => a.finalScore == null && !(a.state === "ok" && a.rawScore != null))
+      .sort((a, b) => a.questionNo - b.questionNo);
+    const nextQuestion = remaining[0];
+    if (nextQuestion) {
+      const idx = questions.findIndex((q) => q.questionNo === nextQuestion.questionNo);
+      if (idx >= 0) setQIndex(idx);
+    } else if (nameNeeded(base, template)) {
+      focusName();
+    }
   }
 
   async function confirmEdit() {
