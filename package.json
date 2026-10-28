@@ -15,7 +15,8 @@
     "package:win": "node scripts/package.mjs --x64",
     "package:win-arm64": "node scripts/package.mjs --arm64",
     "android": "node scripts/build-android.mjs",
-    "package:all": "node scripts/package.mjs --x64"
+    "package:all": "node scripts/package.mjs --x64",
+    "build:web": "node scripts/build-web.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",

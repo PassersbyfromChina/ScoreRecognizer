@@ -41,6 +41,7 @@ pnpm install
 pnpm dev               # 启动前端开发服务器（http://127.0.0.1:5173）
 pnpm electron          # 另开一个终端，启动桌面端（连到开发服务器）
 pnpm build             # 类型检查 + 构建 dist/
+pnpm build:web         # 构建免安装网页版到 docs/app（随 GitHub Pages 发布）
 pnpm test              # 单元测试（vitest）
 pnpm package:win       # 打包 Windows x64 安装包
 pnpm package:win-arm64 # 打包 Windows ARM64 安装包
