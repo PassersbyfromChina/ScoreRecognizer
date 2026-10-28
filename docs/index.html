@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>ScoreRecognizer · 拍照识别答题卡红笔分数</title>
-<meta name="description" content="ScoreRecognizer（红分识别）：拍照识别答题卡上的红色笔迹分数与手写姓名，自动登分、三道核对、一键导出 Excel。支持 Windows x64 / Windows ARM64 / Android 10+，数据只保存在本机。" />
+<meta name="description" content="ScoreRecognizer（红分识别）：拍照识别答题卡上的红色笔迹分数与手写姓名，自动登分、三道核对、一键导出 Excel。支持 Windows x64 / Windows ARM64 / Android 10+，也可免安装直接用网页版；数据只保存在本机。" />
 <meta name="theme-color" content="#f7f8fb" />
 <meta property="og:type" content="website" />
 <meta property="og:title" content="ScoreRecognizer · 拍照识别答题卡红笔分数" />
@@ -201,6 +201,10 @@
 
   /* downloads */
   .dl-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin-bottom:34px}
+  .web-banner{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;background:linear-gradient(120deg,#fff1f3,#fff);border:1px solid #fecdd3;border-radius:16px;padding:18px 22px;margin-bottom:24px}
+  .web-banner b{color:var(--red)}
+  .web-banner .small{display:block;color:var(--muted);font-size:13.5px;margin-top:4px}
+  @media (max-width:640px){.web-banner{padding:16px}.web-banner .btn{width:100%;text-align:center}}
   .release-badge{display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:13px;color:var(--muted);font-weight:600}
   .release-badge b{color:var(--ink)}
   .dl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
@@ -262,6 +266,7 @@
       <a href="#workflow">使用流程</a>
       <a href="#review">核对方式</a>
       <a href="#screens">界面</a>
+      <a href="./app/">网页版</a>
       <a href="#download">下载</a>
       <a href="#faq">常见问题</a>
     </nav>
@@ -279,7 +284,7 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div>
-        <span class="eyebrow"><span class="pulse"></span>答题卡红笔登分工具 · Windows / Android</span>
+        <span class="eyebrow"><span class="pulse"></span>答题卡红笔登分工具 · Windows / Android / 网页版</span>
         <h1>拍一张答题卡，<br /><span class="accent">红笔分数</span>自动进表</h1>
         <p class="lede">自动识别红色笔迹上的分数与手写姓名，拍歪、分数写在题目区域外、一题两个分数、字迹看不清——不猜，交给你在三种视图里核对。</p>
         <div class="cta">
@@ -287,6 +292,7 @@
             <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
             <span>下载 Windows 版</span>
           </a>
+          <a class="btn btn-ghost" href="./app/" id="hero-web">网页版（免安装）</a>
           <a class="btn btn-ghost" href="#download">Android 版</a>
         </div>
         <div class="hero-meta">
@@ -465,6 +471,13 @@
         </div>
         <span class="release-badge" id="release-badge"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:var(--amber);display:inline-block"></span>最新版本 <b id="latest-version">开发中</b></span>
       </div>
+      <div class="web-banner reveal" id="web">
+        <div>
+          <b>不想下载、安装被系统拦截，或 ZIP 提示「压缩包无效」？</b>
+          <span class="small">直接用<b>网页版</b>：在浏览器里打开就能用，功能和安装版基本一致（手机扫码拍照需要安装版）。第一次使用请把网页加入书签。</span>
+        </div>
+        <a class="btn btn-primary" href="./app/">打开网页版 →</a>
+      </div>
       <div class="dl-grid">
         <div class="dl-card reveal" data-os="win-x64">
           <span class="tag" data-recommend hidden>推荐</span>
@@ -489,8 +502,9 @@
         </div>
       </div>
       <div class="dl-foot">
-        <span>系统要求：Windows 10 及以上（x64 / ARM64）· Android 10 及以上</span>
-        <span>Windows 便携版不会写入注册表，适合无法运行安装包的环境。</span>
+        <span>系统要求：Windows 10 及以上（x64 / ARM64）· Android 10 及以上 · 网页版支持现代浏览器</span>
+        <span>Windows 便携版不会写入注册表，适合无法运行安装包的环境；下载后可用 SHA256 校验文件完整性。</span>
+        <span>网页版数据保存在当前浏览器，换浏览器或清理浏览器数据前请先导出备份。</span>
         <a id="releases-link" href="https://github.com/PassersbyfromChina/ScoreRecognizer/releases" target="_blank" rel="noopener">全部版本与更新日志 →</a>
       </div>
     </div>
@@ -504,6 +518,7 @@
         <p>只列主要变化；完整安装包与说明见 GitHub Releases。</p>
       </div>
       <div class="changelog">
+        <div class="log-item reveal"><b>v0.4.3</b><span>免安装网页版上线（直接浏览器使用，绕开安装拦截）；网页版关闭标签页前提醒；发布 SHA256 校验文件，便于核对下载是否完整。</span></div>
         <div class="log-item reveal"><b>v0.4.2</b><span>「通过正常题」一键批过后自动跳到下一处待人工处理；核对流程更顺手。</span></div>
         <div class="log-item reveal"><b>v0.4.1</b><span>AI 请求遇网络抖动/服务端错误自动重试一次，减少无谓回退。</span></div>
         <div class="log-item reveal"><b>v0.4.0</b><span>新增 AI「整张识别」模式（设置里可选逐题裁剪/整张），失败自动回退本地。</span></div>
@@ -537,7 +552,15 @@
         </details>
         <details class="faq">
           <summary>安装包被系统拦截 / 打不开怎么办？</summary>
-          <p>部分 Windows 11 开启了「智能应用控制」（Smart App Control），会拦截没有数字签名的安装程序。这是系统策略，不是应用本身的问题。请改为下载同版本的<b>便携版 ZIP</b>，解压到任意文件夹后运行其中的 <code>ScoreRecognizer.exe</code> 即可。</p>
+          <p>部分 Windows 11 开启了「智能应用控制」（Smart App Control），会拦截没有数字签名的安装程序。这是系统策略，不是应用本身的问题。推荐两种办法：<b>① 直接用免安装网页版</b>（点页面上的「网页版」按钮）；<b>②</b> 下载同版本的<b>便携版 ZIP</b>，解压到任意文件夹后运行其中的 <code>ScoreRecognizer.exe</code>。</p>
+        </details>
+        <details class="faq">
+          <summary>下载的 ZIP 提示「压缩包无效」怎么办？</summary>
+          <p>通常是下载没有完成（文件较大、网络中断或安全软件拦截），不是压缩包本身损坏。可以：<b>① 重新下载</b>，并核对 Releases 里的 SHA256 校验文件；<b>② 直接改用免安装网页版</b>，不需要下载安装。</p>
+        </details>
+        <details class="faq">
+          <summary>网页版和安装版有什么区别？</summary>
+          <p>网页版在浏览器里直接打开，不用下载安装，Windows 拦截也不会影响它；名单、图片、识别结果只保存在当前浏览器里，换浏览器或清理浏览器数据前请先导出备份。功能上除「手机扫码拍照」（需要桌面安装版）外基本一致，也支持导入 Excel、划分区域、上传/摄像头拍照、核对、导出 Excel 和完整备份。关闭或刷新标签页时浏览器会提醒你。</p>
         </details>
         <details class="faq">
           <summary>识别错了怎么办？</summary>
@@ -589,6 +612,7 @@
     <div class="foot">
       <div class="brand"><span class="mark">S</span><span>ScoreRecognizer<small>红分识别</small></span></div>
       <div class="foot-links">
+        <a href="./app/">网页版</a>
         <a href="#features">功能</a>
         <a href="#download">下载</a>
         <a href="#faq">常见问题</a>

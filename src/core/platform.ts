@@ -18,6 +18,11 @@ export function isDesktopApp(): boolean {
   return Boolean(window.desktop?.isDesktop);
 }
 
+/** 浏览器网页版：既不是桌面安装版，也不是 Android App */
+export function isWebApp(): boolean {
+  return !isDesktopApp() && !isNativeMobile();
+}
+
 export function platformLabel(): string {
   if (isDesktopApp()) return `桌面版（${window.desktop?.platform ?? ""}）`;
   if (isNativeMobile()) return "手机版";

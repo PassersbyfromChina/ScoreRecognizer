@@ -9,7 +9,7 @@ import {
   Users,
 } from "lucide-react";
 import { useAppStore, batchCounts } from "./core/store";
-import { isNativeMobile } from "./core/platform";
+import { isNativeMobile, isWebApp } from "./core/platform";
 import type { Screen } from "./navigation";
 import { Onboarding } from "./screens/Onboarding";
 import { HomeScreen } from "./screens/Home";
@@ -85,6 +85,19 @@ export default function App() {
       disposed = true;
       remove?.();
     };
+  }, []);
+
+  // 网页版：数据存在浏览器里，关闭标签页/刷新前提醒（实时保存也提醒，避免误关丢数据）
+  useEffect(() => {
+    if (!isWebApp()) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!useAppStore.getState().project) return;
+      e.preventDefault();
+      e.returnValue = "网页版数据保存在当前浏览器里，关闭前建议先在「导出」或「设置」里备份。";
+      return e.returnValue;
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
   }, []);
 
   useEffect(() => {
@@ -169,7 +182,7 @@ export default function App() {
           </button>
         </nav>
         <div className="sidebar-footer">
-          <div className="ver">v{__APP_VERSION__} · 本地保存</div>
+          <div className="ver">v{__APP_VERSION__} · {isWebApp() ? "网页版 · 数据存浏览器" : "本地保存"}</div>
           <a href="https://github.com/PassersbyfromChina/ScoreRecognizer" target="_blank" rel="noreferrer">
             GitHub 项目页
           </a>

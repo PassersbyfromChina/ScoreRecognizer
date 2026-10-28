@@ -57,6 +57,10 @@ const HELP_ITEMS: Array<{ q: string; a: string }> = [
     q: "Android 手机可以单独用吗？",
     a: "可以。Android 版支持完整流程：导入名单、拍摄/上传、自动处理、核对、导出（保存到手机 Documents 并调起分享）。第一次安装需要在系统里允许「安装未知来源应用」。",
   },
+  {
+    q: "不想安装 / Windows 拦截安装包，有网页版吗？",
+    a: "有。用浏览器打开 https://passersbyfromchina.github.io/ScoreRecognizer/app/ 即可免安装使用（页面「网页版」按钮）。网页版的名单、图片、识别结果保存在当前浏览器里，换浏览器或清理浏览器数据前，请先在「设置 → 完整备份」导出备份；关闭或刷新标签页时浏览器会提醒。手机扫码拍照功能需要桌面安装版。",
+  },
 ];
 
 export function SettingsScreen() {
