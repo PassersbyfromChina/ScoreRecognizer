@@ -5,6 +5,8 @@ _build/
 示例.xlsx
 *.prompt.txt
 *.prompt.md
+# 开发用的示例答题卡图只在本地使用，不随公开仓库发布
+public/samples/
 
 # ---- 依赖与构建产物 ----
 node_modules/
